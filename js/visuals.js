@@ -58,8 +58,8 @@ const SentryVisuals = {
       <svg viewBox="0 0 ${width} ${height}" class="chart-svg" style="width: 100%; height: 100%;">
         <defs>
           <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#FF3B69" stop-opacity="0.38"/>
-            <stop offset="100%" stop-color="#FF3B69" stop-opacity="0.0"/>
+            <stop offset="0%" stop-color="#FE678A" stop-opacity="0.38"/>
+            <stop offset="100%" stop-color="#FE678A" stop-opacity="0.0"/>
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -70,29 +70,29 @@ const SentryVisuals = {
           </filter>
         </defs>
 
-        <!-- Baseline normal curve (Soft Cyan) -->
-        <path d="${baselinePath}" fill="none" stroke="#00F0FF" stroke-width="1.8" stroke-dasharray="3 3" opacity="0.6"/>
+        <!-- Baseline normal curve (Vibrant Sky Cyan/Blue #4496C8) -->
+        <path d="${baselinePath}" fill="none" stroke="#4496C8" stroke-width="1.8" stroke-dasharray="3 3" opacity="0.75"/>
 
         <!-- Anomaly Area Fill -->
         <path d="${areaPath}" fill="url(#areaGradient)"/>
 
-        <!-- Anomaly Line (Vibrant Crimson) -->
-        <path d="${actualPath}" fill="none" stroke="#FF3B69" stroke-width="2.6" filter="url(#glow)"/>
+        <!-- Anomaly Line (Vibrant Coral Pink #FE678A) -->
+        <path d="${actualPath}" fill="none" stroke="#FE678A" stroke-width="2.6" filter="url(#glow)"/>
 
         <!-- Spike Highlight Indicator -->
-        <line x1="${lastPt.x}" y1="${lastPt.y}" x2="${lastPt.x}" y2="${height - padY}" stroke="#FF3B69" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.7"/>
-        <circle cx="${lastPt.x}" cy="${lastPt.y}" r="4.5" fill="#FF3B69" stroke="#FFFFFF" stroke-width="2" filter="url(#glow)"/>
+        <line x1="${lastPt.x}" y1="${lastPt.y}" x2="${lastPt.x}" y2="${height - padY}" stroke="#FE678A" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.7"/>
+        <circle cx="${lastPt.x}" cy="${lastPt.y}" r="4.5" fill="#FE678A" stroke="#FFFFFF" stroke-width="2" filter="url(#glow)"/>
 
         <!-- Floating Value Tag -->
         <g transform="translate(${lastPt.x - 72}, ${lastPt.y - 30})">
-          <rect width="68" height="20" rx="3" fill="#FF3B69"/>
+          <rect width="68" height="20" rx="4" fill="#FE678A"/>
           <text x="34" y="14" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">${curveData.spikeValue}</text>
         </g>
 
         <!-- X Axis Labels -->
-        <text x="${pointsActual[0].x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" fill="#8F9CAE">00:00</text>
-        <text x="${width / 2}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" fill="#8F9CAE" text-anchor="middle">10m Window</text>
-        <text x="${lastPt.x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#FF3B69" text-anchor="end">Current</text>
+        <text x="${pointsActual[0].x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" fill="#8E9BB0">00:00</text>
+        <text x="${width / 2}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" fill="#8E9BB0" text-anchor="middle">10m Window</text>
+        <text x="${lastPt.x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#FE678A" text-anchor="end">Current</text>
       </svg>
     `;
   },
@@ -106,13 +106,13 @@ const SentryVisuals = {
     const circumference = 2 * Math.PI * radius;
     const strokeOffset = circumference - (score / maxScore) * circumference;
 
-    let strokeColor = '#FF3B69';
+    let strokeColor = '#FE678A';
     let gradeLabel = 'CRITICAL';
     if (score < 50) {
-      strokeColor = '#00E599';
+      strokeColor = '#4496C8';
       gradeLabel = 'CLEAN';
     } else if (score < 75) {
-      strokeColor = '#FFB547';
+      strokeColor = '#4496C8';
       gradeLabel = 'REVIEW';
     }
 
@@ -127,7 +127,7 @@ const SentryVisuals = {
         </svg>
         <div class="donut-center-text">
           <span class="donut-score mono bold" style="color: ${strokeColor};">${score}%</span>
-          <span class="donut-lbl">${gradeLabel}</span>
+          <span class="donut-lbl" style="color: #CBD5E1;">${gradeLabel}</span>
         </div>
       </div>
     `;
@@ -139,20 +139,20 @@ const SentryVisuals = {
     if (!container || !geoData) return;
 
     const isImpossible = geoData.isImpossible;
-    const arcColor = isImpossible ? '#FF3B69' : '#00E599';
+    const arcColor = isImpossible ? '#FE678A' : '#4496C8';
 
     container.innerHTML = `
       <div class="geo-hop-box">
         <div class="geo-hop-header">
-          <span class="geo-tag mono">${geoData.distanceKm} // DELTA ${geoData.timeDeltaMin}</span>
+          <span class="geo-tag mono" style="color: #CBD5E1;">${geoData.distanceKm} // DELTA ${geoData.timeDeltaMin}</span>
           <span class="badge-tag ${isImpossible ? 'tag-danger' : 'tag-clean'}">${geoData.speedKmh}</span>
         </div>
 
         <svg viewBox="0 0 320 80" class="geo-arc-svg" style="width: 100%; height: 80px;">
-          <!-- Node 1 (Origin) -->
-          <circle cx="45" cy="55" r="8" fill="rgba(0, 240, 255, 0.2)"/>
-          <circle cx="45" cy="55" r="4.5" fill="#00F0FF"/>
-          <text x="45" y="74" font-family="'JetBrains Mono', monospace" font-size="9" fill="#94A3B8" text-anchor="middle">${geoData.origin.name.split(' ')[0]}</text>
+          <!-- Node 1 (Origin) in #4496C8 -->
+          <circle cx="45" cy="55" r="8" fill="rgba(68, 150, 200, 0.25)"/>
+          <circle cx="45" cy="55" r="4.5" fill="#4496C8"/>
+          <text x="45" y="74" font-family="'JetBrains Mono', monospace" font-size="9" fill="#CBD5E1" text-anchor="middle">${geoData.origin.name.split(' ')[0]}</text>
 
           <!-- Parabolic Flight Arc -->
           <path d="M 45 55 Q 160 5, 275 55" fill="none" stroke="${arcColor}" stroke-width="2.4" stroke-dasharray="5 4"/>
@@ -161,13 +161,16 @@ const SentryVisuals = {
           <circle cx="160" cy="30" r="3.5" fill="${arcColor}"/>
 
           <!-- Node 2 (Destination) -->
-          <circle cx="275" cy="55" r="${isImpossible ? 10 : 8}" fill="${isImpossible ? 'rgba(255, 59, 105, 0.25)' : 'rgba(0, 229, 153, 0.2)'}"/>
+          <circle cx="275" cy="55" r="${isImpossible ? 10 : 8}" fill="${isImpossible ? 'rgba(254, 103, 138, 0.25)' : 'rgba(68, 150, 200, 0.25)'}"/>
           <circle cx="275" cy="55" r="4.5" fill="${arcColor}"/>
-          <text x="275" y="74" font-family="'JetBrains Mono', monospace" font-size="9" fill="${isImpossible ? '#FF3B69' : '#94A3B8'}" font-weight="700" text-anchor="middle">${geoData.destination.name.split(' ')[0]}</text>
+          <text x="275" y="74" font-family="'JetBrains Mono', monospace" font-size="9" fill="${isImpossible ? '#FE678A' : '#CBD5E1'}" font-weight="700" text-anchor="middle">${geoData.destination.name.split(' ')[0]}</text>
         </svg>
 
         <div class="geo-verdict-bar ${isImpossible ? 'text-danger' : 'text-clean'} mono bold">
-          ${isImpossible ? '⚡' : '✓'} ${geoData.verdict}
+          <svg class="sentry-icon sentry-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+            ${isImpossible ? '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' : '<polyline points="20 6 9 17 4 12"/>'}
+          </svg>
+          ${geoData.verdict}
         </div>
       </div>
     `;
@@ -225,7 +228,9 @@ const SentryVisuals = {
           <div class="entity-name">${step.from}</div>
           <div class="entity-arrow-wrap">
             <span class="entity-link-lbl mono">${step.label}</span>
-            <span class="entity-arrow">➔</span>
+            <svg class="sentry-icon sentry-icon-sm entity-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
           </div>
           <div class="entity-target">${step.to}</div>
         </div>

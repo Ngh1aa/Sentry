@@ -131,9 +131,11 @@ class SentryFraudConsole {
     if (toggleBtn) {
       toggleBtn.addEventListener('click', () => {
         const isDark = document.body.classList.toggle('dark-theme');
+        const sunIcon = window.SentryIcons ? window.SentryIcons.sun : '';
+        const moonIcon = window.SentryIcons ? window.SentryIcons.moon : '';
         toggleBtn.innerHTML = isDark 
-          ? `<span class="icon">🌙</span> Dark Terminal` 
-          : `<span class="icon">☀️</span> Clinical Light`;
+          ? `${moonIcon} Dark Terminal` 
+          : `${sunIcon} Clinical Light`;
       });
     }
   }
@@ -284,14 +286,16 @@ class SentryFraudConsole {
     if (alert.device.isMismatch) {
       if (canvasEl) canvasEl.innerHTML = `<span class="badge-tag tag-danger">SPOOF DETECTED</span> ${alert.device.actualHardware}`;
       if (canvasSub) {
-        canvasSub.textContent = '⚠️ Canvas Hash Spoof Detected';
+        const warnIco = window.SentryIcons ? window.SentryIcons.alertTriangle : '';
+        canvasSub.innerHTML = `${warnIco} Canvas Hash Spoof Detected`;
         canvasSub.className = 'dissect-sub mono text-danger';
       }
       if (hwBox) hwBox.className = 'dissect-box highlight-danger';
     } else {
       if (canvasEl) canvasEl.innerHTML = `<span class="badge-tag tag-clean">AUTHENTIC</span> ${alert.device.actualHardware || 'Hardware Verified'}`;
       if (canvasSub) {
-        canvasSub.textContent = '✓ Authentic Hardware Signature';
+        const checkIco = window.SentryIcons ? window.SentryIcons.check : '';
+        canvasSub.innerHTML = `${checkIco} Authentic Hardware Signature`;
         canvasSub.className = 'dissect-sub mono text-clean';
       }
       if (hwBox) hwBox.className = 'dissect-box';
@@ -381,9 +385,14 @@ class SentryFraudConsole {
       pill.className = 'spectrum-legend-item';
       const label = seg.category || seg.label || 'Risk Factor';
       const score = seg.score !== undefined ? seg.score : (seg.points || 0);
-      const color = seg.color || '#EF4444';
+      const color = seg.color || '#FE678A';
+      const iconKey = seg.icon;
+      const iconSvg = (window.SentryIcons && iconKey && window.SentryIcons[iconKey]) 
+        ? window.SentryIcons[iconKey] 
+        : '';
+
       pill.innerHTML = `
-        <span class="spectrum-cat"><span class="spectrum-dot" style="background-color: ${color};"></span>${label}</span>
+        <span class="spectrum-cat">${iconSvg}<span class="spectrum-dot" style="background-color: ${color};"></span>${label}</span>
         <span class="spectrum-pts mono bold" style="color: ${color};">${score >= 0 ? '+' : ''}${score}</span>
       `;
       container.appendChild(pill);
@@ -421,8 +430,9 @@ class SentryFraudConsole {
     if (hasConflict) {
       const conflictBanner = document.createElement('div');
       conflictBanner.className = 'rule-conflict-banner';
+      const warnIcon = window.SentryIcons ? window.SentryIcons.alertTriangle : '';
       conflictBanner.innerHTML = `
-        <div class="conflict-title">⚠️ SYSTEM RULE CONFLICT DETECTED</div>
+        <div class="conflict-title">${warnIcon} SYSTEM RULE CONFLICT DETECTED</div>
         <div class="conflict-detail">
           <strong>RULE-301 (Cross-Border Luxury Hold)</strong> conflicts with <strong>RULE-012 (VIP Private Wealth Exemption)</strong>.
           Analyst manual triage required to establish precedence and prevent false-positive VIP friction.
@@ -514,7 +524,7 @@ class SentryFraudConsole {
           <div>Triggered 24h: <strong class="mono">${rule.triggered24h}</strong> | False Positives: <strong class="mono">${rule.falsePositiveRate}</strong></div>
           <div class="mono text-muted">Author: ${rule.author}</div>
         </div>
-        ${rule.hasConflictNotice ? `<div class="rule-conflict-tag">⚠️ ${rule.hasConflictNotice}</div>` : ''}
+        ${rule.hasConflictNotice ? `<div class="rule-conflict-tag">${window.SentryIcons ? window.SentryIcons.alertTriangle : ''} ${rule.hasConflictNotice}</div>` : ''}
       `;
       container.appendChild(card);
     });

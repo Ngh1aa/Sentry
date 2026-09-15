@@ -39,9 +39,9 @@ const SENTRY_DATA = {
         panMasked: "•••• 8912",
         cardholder: "ELEANOR VANCE",
         expiry: "08/29",
-        gradient: "linear-gradient(135deg, #FF3B69 0%, #FF6584 100%)",
+        gradient: "linear-gradient(135deg, #FE678A 0%, #FF85A0 100%)",
         brand: "VISA",
-        chipColor: "#FFD700",
+        chipColor: "#FDE047",
         status: "FLAGGED_FOR_FREEZE"
       },
       transaction: {
@@ -100,10 +100,10 @@ const SENTRY_DATA = {
         grade: "HIGH_RISK",
         recommendation: "BLOCK & FREEZE ACCOUNT",
         breakdown: [
-          { category: "Device Spoofing", score: 32, max: 35, color: "#FF3B69", icon: "💻" },
-          { category: "Impossible Travel", score: 28, max: 30, color: "#FF754C", icon: "✈️" },
-          { category: "Velocity Spike", score: 22, max: 20, color: "#FFB547", icon: "📈" },
-          { category: "New Beneficiary", score: 12, max: 15, color: "#7C5CFC", icon: "🏦" }
+          { category: "Device Spoofing", score: 32, max: 35, color: "#FE678A", icon: "laptop" },
+          { category: "Impossible Travel", score: 28, max: 30, color: "#FE678A", icon: "plane" },
+          { category: "Velocity Spike", score: 22, max: 20, color: "#4496C8", icon: "trendingUp" },
+          { category: "New Beneficiary", score: 12, max: 15, color: "#4496C8", icon: "bank" }
         ]
       },
       entityGraph: [
@@ -150,7 +150,7 @@ const SENTRY_DATA = {
         panMasked: "•••• 4091",
         cardholder: "MARCUS A THORNE",
         expiry: "11/28",
-        gradient: "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)",
+        gradient: "linear-gradient(135deg, #4496C8 0%, #68B4E2 100%)",
         brand: "MASTERCARD",
         chipColor: "#E2E8F0",
         status: "RULE_CONFLICT_HOLD"
@@ -209,10 +209,10 @@ const SENTRY_DATA = {
         grade: "RULE_CONFLICT",
         recommendation: "OVERRIDE & ALLOW (VIP TRAVEL)",
         breakdown: [
-          { category: "Geo Cross-Border Rule 301", score: 40, max: 40, color: "#FF754C", icon: "🌐" },
-          { category: "VIP Whitelist Policy 012", score: -20, max: 20, color: "#00E599", icon: "💎" },
-          { category: "Reputable Merchant Score", score: 2, max: 20, color: "#00E599", icon: "🏨" },
-          { category: "Spend Within VIP Tier", score: 0, max: 20, color: "#00E599", icon: "💳" }
+          { category: "Geo Cross-Border Rule 301", score: 40, max: 40, color: "#FE678A", icon: "alertTriangle" },
+          { category: "VIP Whitelist Policy 012", score: -20, max: 20, color: "#4496C8", icon: "shieldCheck" },
+          { category: "Reputable Merchant Score", score: 2, max: 20, color: "#4496C8", icon: "bank" },
+          { category: "Spend Within VIP Tier", score: 0, max: 20, color: "#4496C8", icon: "checkCircle" }
         ]
       },
       entityGraph: [
@@ -256,9 +256,9 @@ const SENTRY_DATA = {
         panMasked: "•••• 1084",
         cardholder: "DEVON BRADLEY",
         expiry: "03/27",
-        gradient: "linear-gradient(135deg, #475569 0%, #1E293B 100%)",
+        gradient: "linear-gradient(135deg, #322761 0%, #141527 100%)",
         brand: "VISA",
-        chipColor: "#94A3B8",
+        chipColor: "#4496C8",
         status: "FROZEN_CARDING"
       },
       transaction: {
@@ -315,10 +315,10 @@ const SENTRY_DATA = {
         grade: "HIGH_RISK",
         recommendation: "PERMANENT CARD & IP LOCK",
         breakdown: [
-          { category: "Carding Velocity", score: 40, max: 40, color: "#FF3B69", icon: "⚡" },
-          { category: "Cross-PAN Fingerprint Leak", score: 35, max: 35, color: "#FF3B69", icon: "🤖" },
-          { category: "Disposable Email Domain", score: 14, max: 15, color: "#FF754C", icon: "📧" },
-          { category: "Datacenter Hosting", score: 10, max: 10, color: "#7C5CFC", icon: "🌐" }
+          { category: "Carding Velocity", score: 40, max: 40, color: "#FE678A", icon: "zap" },
+          { category: "Cross-PAN Fingerprint Leak", score: 35, max: 35, color: "#FE678A", icon: "laptop" },
+          { category: "Disposable Email Domain", score: 14, max: 15, color: "#FE678A", icon: "alertTriangle" },
+          { category: "Datacenter Hosting", score: 10, max: 10, color: "#4496C8", icon: "shield" }
         ]
       },
       entityGraph: [

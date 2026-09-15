@@ -44,7 +44,7 @@ SENTRY Console
 
 ## 03. Visual Direction & Signatures (Visual-First Architecture)
 
-- **Visual Direction**: `forensic / dense / controlled` — High-density dark terminal theme (`#0B0F19` deep space background, `#131A2B` elevated cards) with clinical light theme support. Minimalist, institutional, zero sci-fi clichés.
+- **Visual Direction**: High-density institutional dark console (Canvas: `#141527`, Action Buttons: `#322761`, Typography: `#FFFFFF`, Visual Accents & Payment Cards: `#4496C8` & `#FE678A`) with a universal stroke-based minimalist line-art SVG icon system (`SentryIcons`). Institutional, forensic, zero emojis.
 - **Visual Telemetry & Diagram Cards**:
   1. **Radial Donut Risk Gauge**: Circular SVG donut ring (`94% CRITICAL`, `62% REVIEW`) with animated stroke-dashoffset, dynamic categorical point breakdowns (+32 Device, +28 Travel, +22 Velocity, +12 Beneficiary).
   2. **Spend Velocity Spline Wave Chart**: Smooth cubic Bezier spline with gradient area fill, baseline normal curve, and glowing anomaly peak tag (`$8,450`, `€4,200`).
