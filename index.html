@@ -4,22 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SENTRY — Fraud & Risk Operations Console</title>
-  <meta name="description" content="Forensic risk operations console for high-stakes fraud investigation, evidence correlation, and rapid decisioning.">
+  <meta name="description" content="Visual-first fraud risk operations console with real-time velocity curves, radial risk gauges, and geolocation hop diagrams.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230F172A'><path d='M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.58-3.15 8.87-7 9.94-3.85-1.07-7-5.36-7-9.94V7.3l7-3.12z'/></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300F0FF'><path d='M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.58-3.15 8.87-7 9.94-3.85-1.07-7-5.36-7-9.94V7.3l7-3.12z'/></svg>">
 </head>
-<body>
+<body class="dark-theme">
 
   <!-- Top Navigation Strip -->
   <header class="sentry-top-bar">
     <div class="brand-section">
       <div class="brand-mark">
         <svg class="brand-shield-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L3 6V12C3 17.55 6.84 22.74 12 24C17.16 22.74 21 17.55 21 12V6L12 2Z" fill="currentColor"/>
-          <path d="M12 7L16 11H13V17H11V11H8L12 7Z" fill="#FFFFFF"/>
+          <path d="M12 2L3 6V12C3 17.55 6.84 22.74 12 24C17.16 22.74 21 17.55 21 12V6L12 2Z" fill="#00F0FF"/>
+          <path d="M12 7L16 11H13V17H11V11H8L12 7Z" fill="#0D111D"/>
         </svg>
         <span class="brand-name">SENTRY</span>
         <span class="console-label">Fraud & Risk Operations Console</span>
@@ -59,7 +59,7 @@
         <span>Đỗ Anh Nghĩa (Senior Analyst)</span>
       </div>
       <button class="btn-theme-toggle" id="btnThemeToggle" title="Toggle Clinical Dark / Light Theme">
-        <span class="icon">🌙</span> Dark Terminal
+        <span class="icon">☀️</span> Light Theme
       </button>
     </div>
   </header>
@@ -95,7 +95,7 @@
     <section class="console-view active" id="view-queue">
       <div class="split-workspace-layout">
 
-        <!-- Left Rail: Alert Queue (320px) -->
+        <!-- Left Rail: Alert Queue (300px) -->
         <aside class="split-queue-rail" aria-label="Investigation Queue">
           <div class="queue-header-box">
             <div class="queue-title-row">
@@ -126,168 +126,104 @@
               <span class="evidence-header-id mono" id="evidenceAlertId">ALT-8921</span>
               <span class="evidence-header-case mono" id="evidenceCaseId">CASE-4401</span>
               <span class="badge-status badge-danger" id="evidenceStateBadge">HIGH RISK</span>
+              <span class="evidence-cust-pill mono" id="evidenceCustomerInfo"></span>
             </div>
             <div class="evidence-header-time mono" id="evidenceTimestamp">2026-09-16 01:14:22 UTC</div>
           </div>
 
-          <!-- Visual Signature 1: Risk Spectrum Bar -->
-          <div class="risk-spectrum-box">
-            <div class="spectrum-top-row">
-              <span class="spectrum-title">VISUAL SIGNATURE // RISK SPECTRUM CONTRIBUTION</span>
-              <span class="mono bold text-danger" id="spectrumTotalScore">94 / 100 COMPOSITE RISK</span>
+          <!-- TOP ROW: 3 Visual Widgets (Radial Donut Gauge | Velocity Wave Chart | Virtual Card) -->
+          <div class="visual-top-row">
+
+            <!-- 1. Radial Donut Risk Gauge -->
+            <div class="diagram-card donut-risk-card">
+              <div class="diagram-card-title">COMPOSITE RISK GAUGE</div>
+              <div class="donut-card-body">
+                <div id="radialRiskGauge" class="donut-container"></div>
+                <div class="donut-legend-column" id="riskSpectrumBreakdown"></div>
+              </div>
             </div>
-            <div class="spectrum-track" id="riskSpectrumBar">
-              <!-- Rendered dynamically -->
+
+            <!-- 2. Smooth Spend Velocity Spline Chart -->
+            <div class="diagram-card velocity-chart-card">
+              <div class="diagram-card-title-row">
+                <span class="diagram-card-title">VELOCITY SURGE & BASELINE SPIKE</span>
+                <span class="chart-tag mono" id="velocityCardSubtitle">10m Window</span>
+              </div>
+              <div id="velocitySplineChart" class="spline-chart-container"></div>
             </div>
-            <div class="spectrum-breakdown-row" id="riskSpectrumBreakdown">
-              <!-- Rendered dynamically -->
+
+            <!-- 3. Virtual Payment Card Widget -->
+            <div class="diagram-card virtual-card-card">
+              <div class="diagram-card-title">PAYMENT INSTRUMENT</div>
+              <div id="virtualCardContainer" class="virtual-card-wrapper"></div>
             </div>
+
           </div>
 
-          <!-- Visual Signature 2: Evidence Trace & Historical Timeline -->
-          <div class="evidence-trace-box">
-            <div class="trace-header">VISUAL SIGNATURE // EVIDENCE TRACE & BEHAVIORAL DELTA</div>
-            <div class="timeline-list" id="evidenceTimelineList">
-              <!-- Rendered dynamically -->
+          <!-- MIDDLE ROW: Geolocation Hop Map & Device Authenticity Dissector -->
+          <div class="visual-mid-row">
+
+            <!-- Geolocation Flight Hop Map Diagram -->
+            <div class="diagram-card geo-hop-card">
+              <div class="diagram-card-title">GEOLOCATION HOP & IMPOSSIBLE TRAVEL DELTA</div>
+              <div id="geoHopDiagramContainer"></div>
             </div>
+
+            <!-- Device Authenticity & Hardware Leak -->
+            <div class="diagram-card device-authenticity-card">
+              <div class="diagram-card-title">DEVICE FINGERPRINT & HARDWARE LEAK</div>
+              <div class="device-dissector-grid">
+                <div class="dissect-box">
+                  <div class="dissect-lbl">CLAIMED USER-AGENT</div>
+                  <div class="dissect-val bold" id="evDeviceOS">macOS 14.5 (Safari)</div>
+                  <div class="dissect-sub mono text-clean">✓ Form factor: Desktop</div>
+                </div>
+                <div class="dissect-box" id="evDeviceHardwareBox">
+                  <div class="dissect-lbl">ACTUAL HARDWARE LEAK</div>
+                  <div class="dissect-val bold" id="evDeviceCanvas">Linux x86_64 (Puppeteer)</div>
+                  <div class="dissect-sub mono" id="evDeviceCanvasSub">⚠️ Canvas Hash Spoof Detected</div>
+                </div>
+                <div class="dissect-box">
+                  <div class="dissect-lbl">FINGERPRINT HASH</div>
+                  <div class="dissect-val mono" id="evDeviceFp">fp_9f4b23_c91d8e</div>
+                  <div class="dissect-sub mono" id="evDeviceHistory">First seen 42m ago</div>
+                </div>
+                <div class="dissect-box">
+                  <div class="dissect-lbl">NETWORK PROXY TYPE</div>
+                  <div class="dissect-val" id="evNetProxy">Tor Exit Node (Known Relay)</div>
+                  <div class="dissect-sub mono text-danger" id="evDeviceTz">Timezone Mismatch</div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Evidence Cards Grid -->
-          <div class="evidence-cards-grid">
+          <!-- BOTTOM ROW: Entity Relationship Graph & Evidence Trace Timeline -->
+          <div class="visual-bottom-row">
 
-            <!-- Evidence 1: Transaction & Velocity -->
-            <div class="evidence-card">
-              <div class="card-title">01. TRANSACTION & VELOCITY TELEMETRY</div>
-              <div class="evidence-grid-2">
-                <div class="ev-item">
-                  <span class="ev-label">TRANSACTION AMOUNT</span>
-                  <span class="ev-val mono bold text-danger" id="evTxAmount">$8,450.00 USD</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">PAYMENT CHANNEL</span>
-                  <span class="ev-val mono" id="evTxType">Instant Wire</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">MERCHANT & MCC</span>
-                  <span class="ev-val" id="evTxMerchant">Panama Vault Remit (MCC 6051)</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">PAYMENT INSTRUMENT</span>
-                  <span class="ev-val mono" id="evTxMethod">Checking •••• 8912</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">10-MIN VELOCITY</span>
-                  <span class="ev-val mono text-danger" id="evTxVelocity10m">$8,450 vs $120 avg</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">24-HOUR VELOCITY</span>
-                  <span class="ev-val mono text-danger" id="evTxVelocity24h">$14,800 vs $850 avg</span>
-                </div>
-              </div>
+            <!-- Entity Relationship Flow Graph -->
+            <div class="diagram-card entity-flow-card">
+              <div class="diagram-card-title">360° ENTITY RELATIONSHIP & EXFILTRATION PATH</div>
+              <div id="entityGraphContainer"></div>
             </div>
 
-            <!-- Evidence 2: Customer Identity & Profile -->
-            <div class="evidence-card">
-              <div class="card-title">02. CUSTOMER ENTITY & TRUST PROFILE</div>
-              <div class="evidence-grid-2">
-                <div class="ev-item">
-                  <span class="ev-label">CUSTOMER NAME</span>
-                  <span class="ev-val bold" id="evCustName">Eleanor Vance</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">CUSTOMER ID</span>
-                  <span class="ev-val mono" id="evCustId">CUST-90412</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">ACCOUNT TENURE</span>
-                  <span class="ev-val mono" id="evCustAccountAge">4 years, 2 months</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">TRUST TIER STATUS</span>
-                  <span class="ev-val mono" id="evCustTrustTier">Gold (Degraded)</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">LIFETIME VOLUME</span>
-                  <span class="ev-val mono" id="evCustVolume">$482,900 USD</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">DISPUTE HISTORY</span>
-                  <span class="ev-val mono" id="evCustDisputes">0 Prior Chargebacks</span>
-                </div>
-              </div>
+            <!-- Evidence Trace Timeline -->
+            <div class="diagram-card evidence-timeline-card">
+              <div class="diagram-card-title">CHRONOLOGICAL EVIDENCE TRACE</div>
+              <div class="timeline-list" id="evidenceTimelineList"></div>
             </div>
 
-            <!-- Evidence 3: Device Fingerprint & Spoofing -->
-            <div class="evidence-card">
-              <div class="card-title">03. DEVICE FINGERPRINT & AUTHENTICITY</div>
-              <div class="evidence-grid-2">
-                <div class="ev-item">
-                  <span class="ev-label">FINGERPRINT HASH</span>
-                  <span class="ev-val mono" id="evDeviceFp">fp_9f4b23_c91d8e</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">REPORTED USER-AGENT</span>
-                  <span class="ev-val" id="evDeviceOS">macOS 14.5 / Safari 17.4</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">CANVAS HARDWARE HASH</span>
-                  <span class="ev-val" id="evDeviceCanvas">Mismatch</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">DEVICE HISTORY</span>
-                  <span class="ev-val" id="evDeviceHistory">First seen 42m ago</span>
-                </div>
-                <div class="ev-item" style="grid-column: 1 / -1;">
-                  <span class="ev-label">TIMEZONE INTEGRITY</span>
-                  <span class="ev-val mono text-danger" id="evDeviceTz">MISMATCH</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Evidence 4: Network & Geolocation Velocity -->
-            <div class="evidence-card">
-              <div class="card-title">04. NETWORK, PROXY & GEOLOCATION HOP</div>
-              <div class="evidence-grid-2">
-                <div class="ev-item">
-                  <span class="ev-label">INGRESS IP & LOCATION</span>
-                  <span class="ev-val mono" id="evNetIp">185.220.101.44 (Amsterdam)</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">ROUTING ASN</span>
-                  <span class="ev-val mono" id="evNetAsn">AS9009 Tor Relay</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">ANONYMIZER / PROXY</span>
-                  <span class="ev-val" id="evNetProxy">Tor Exit Node</span>
-                </div>
-                <div class="ev-item">
-                  <span class="ev-label">GEOGRAPHIC VELOCITY</span>
-                  <span class="ev-val text-danger" id="evNetTravel">8,790 km/h (Impossible)</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Evidence 5: Beneficiary & Counterparty Watchlist -->
-            <div class="evidence-card" style="grid-column: 1 / -1;">
-              <div class="card-title">05. BENEFICIARY COUNTERPARTY INTELLIGENCE</div>
-              <div id="evidenceBeneficiaryCard">
-                <!-- Rendered dynamically -->
-              </div>
-            </div>
-
-            <!-- Evidence 6: Triggered Rules & Conflict Resolution -->
-            <div class="rules-evidence-box">
-              <div class="card-title">06. TRIGGERED POLICY RULES & CONFLICT DETECTOR</div>
-              <div id="evidenceRulesList">
-                <!-- Rendered dynamically -->
-              </div>
+            <!-- Triggered Rules & Conflict Resolution Banner -->
+            <div class="diagram-card rules-card">
+              <div class="diagram-card-title">POLICY RULES & CONFLICT RESOLUTION</div>
+              <div id="evidenceRulesList"></div>
             </div>
 
           </div>
 
         </section>
 
-        <!-- Right Dock: Decision Panel (320px) -->
+        <!-- Right Dock: Decision Panel (300px) -->
         <aside class="split-decision-dock" aria-label="High-Stakes Decision Dock">
           <div class="decision-dock-title">Analyst Decision Panel</div>
 
@@ -468,6 +404,7 @@
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/visuals.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

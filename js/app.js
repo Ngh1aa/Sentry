@@ -221,77 +221,112 @@ class SentryFraudConsole {
     const alert = this.alerts.find(a => a.id === this.activeAlertId) || this.alerts[0];
     if (!alert) return;
 
+    const setElemText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.textContent = val;
+    };
+    const setElemHtml = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.innerHTML = val;
+    };
+
     // Header strip
-    document.getElementById('evidenceAlertId').textContent = alert.id;
-    document.getElementById('evidenceCaseId').textContent = alert.caseId;
-    document.getElementById('evidenceTimestamp').textContent = alert.transaction.timestamp;
+    setElemText('evidenceAlertId', alert.id);
+    setElemText('evidenceCaseId', alert.caseId);
+    setElemText('evidenceTimestamp', alert.transaction.timestamp);
     
     const stateBadge = document.getElementById('evidenceStateBadge');
-    stateBadge.textContent = alert.status.replace('_', ' ');
-    stateBadge.className = `badge-status badge-${alert.status.toLowerCase()}`;
+    if (stateBadge) {
+      stateBadge.textContent = alert.status.replace('_', ' ');
+      stateBadge.className = `badge-status badge-${alert.status.toLowerCase()}`;
+    }
 
-    // Visual Signature 1: Risk Spectrum Bar Breakdown
+    // Customer Identity Summary in Header Strip
+    const custInfoEl = document.getElementById('evidenceCustomerInfo');
+    if (custInfoEl) {
+      custInfoEl.innerHTML = `<span class="bold text-white">${alert.customer.name}</span> <span class="text-muted">(${alert.customer.id})</span> · <span class="badge-tag tag-clean">${alert.customer.trustTier}</span> · Age: ${alert.customer.accountAge} · Vol: ${alert.customer.lifetimeVolume}`;
+    }
+
+    // Render Visual Diagrams via SentryVisuals (Visual-First Architecture)
+    if (window.SentryVisuals) {
+      window.SentryVisuals.renderDonutGauge('radialRiskGauge', alert.riskSpectrum.totalScore);
+      window.SentryVisuals.renderVelocityChart('velocitySplineChart', alert.velocityCurve);
+      window.SentryVisuals.renderVirtualCard('virtualCardContainer', alert.cardVisual, alert.transaction.amountFormatted);
+      window.SentryVisuals.renderGeoHopDiagram('geoHopDiagramContainer', alert.geoHop);
+      window.SentryVisuals.renderEntityGraph('entityGraphContainer', alert.entityGraph);
+    }
+
+    // Visual Signature 1: Risk Spectrum Breakdown (Legend beside donut gauge)
     this.renderRiskSpectrum(alert.riskSpectrum);
 
     // Visual Signature 2: Evidence Trace & Timeline
     this.renderTimeline(alert.timeline);
 
-    // Evidence Section 1: Transaction & Velocity
-    document.getElementById('evTxAmount').textContent = alert.transaction.amountFormatted;
-    document.getElementById('evTxType').textContent = alert.transaction.type;
-    document.getElementById('evTxMerchant').textContent = `${alert.transaction.merchant} (MCC: ${alert.transaction.mcc})`;
-    document.getElementById('evTxMethod').textContent = alert.transaction.paymentMethod;
-    document.getElementById('evTxVelocity10m').textContent = alert.transaction.velocity10m;
-    document.getElementById('evTxVelocity24h').textContent = alert.transaction.velocity24h;
+    // Update Card Subtitle if present
+    setElemText('velocityCardSubtitle', alert.velocityCurve ? alert.velocityCurve.spikeLabel : '10m Window');
 
-    // Evidence Section 2: Customer Identity & Profile
-    document.getElementById('evCustName').textContent = alert.customer.name;
-    document.getElementById('evCustId').textContent = alert.customer.id;
-    document.getElementById('evCustAccountAge').textContent = alert.customer.accountAge;
-    document.getElementById('evCustTrustTier').textContent = alert.customer.trustTier;
-    document.getElementById('evCustVolume').textContent = alert.customer.lifetimeVolume;
-    document.getElementById('evCustDisputes').textContent = `${alert.customer.priorDisputes} Prior Chargebacks`;
+    // Evidence Section 2: Customer Identity & Profile (safe fallback)
+    setElemText('evCustName', alert.customer.name);
+    setElemText('evCustId', alert.customer.id);
+    setElemText('evCustAccountAge', alert.customer.accountAge);
+    setElemText('evCustTrustTier', alert.customer.trustTier);
+    setElemText('evCustVolume', alert.customer.lifetimeVolume);
+    setElemText('evCustDisputes', `${alert.customer.priorDisputes} Prior Chargebacks`);
 
-    // Evidence Section 3: Device Fingerprint & Spoofing
-    document.getElementById('evDeviceFp').textContent = alert.device.fingerprint;
-    document.getElementById('evDeviceOS').textContent = `${alert.device.osReported} / ${alert.device.browserReported}`;
+    // Evidence Section 3: Device Fingerprint & Hardware Leak Dissector
+    setElemText('evDeviceFp', alert.device.fingerprint);
+    setElemText('evDeviceOS', alert.device.osReported);
     
     const canvasEl = document.getElementById('evDeviceCanvas');
-    if (!alert.device.canvasHashMatch) {
-      canvasEl.innerHTML = `<span class="badge-tag tag-danger">SPOOF DETECTED</span> Reported: ${alert.device.canvasReportedOS}`;
+    const canvasSub = document.getElementById('evDeviceCanvasSub');
+    const hwBox = document.getElementById('evDeviceHardwareBox');
+
+    if (alert.device.isMismatch) {
+      if (canvasEl) canvasEl.innerHTML = `<span class="badge-tag tag-danger">SPOOF DETECTED</span> ${alert.device.actualHardware}`;
+      if (canvasSub) {
+        canvasSub.textContent = '⚠️ Canvas Hash Spoof Detected';
+        canvasSub.className = 'dissect-sub mono text-danger';
+      }
+      if (hwBox) hwBox.className = 'dissect-box highlight-danger';
     } else {
-      canvasEl.innerHTML = `<span class="badge-tag tag-clean">AUTHENTIC</span> Hardware Verified`;
+      if (canvasEl) canvasEl.innerHTML = `<span class="badge-tag tag-clean">AUTHENTIC</span> ${alert.device.actualHardware || 'Hardware Verified'}`;
+      if (canvasSub) {
+        canvasSub.textContent = '✓ Authentic Hardware Signature';
+        canvasSub.className = 'dissect-sub mono text-clean';
+      }
+      if (hwBox) hwBox.className = 'dissect-box';
     }
 
-    document.getElementById('evDeviceHistory').textContent = alert.device.deviceHistory;
-    document.getElementById('evDeviceTz').textContent = alert.device.timezoneMismatch 
-      ? `MISMATCH (Client: ${alert.device.timezoneClient} vs Billing: ${alert.device.timezoneBilling})`
-      : `Matched (${alert.device.timezoneClient})`;
-
-    // Evidence Section 4: Network & Geolocation Velocity
-    document.getElementById('evNetIp').textContent = `${alert.network.ip} (${alert.network.city}, ${alert.network.country})`;
-    document.getElementById('evNetAsn').textContent = alert.network.asn;
+    setElemText('evDeviceHistory', alert.device.deviceHistory);
     
     const proxyEl = document.getElementById('evNetProxy');
-    if (alert.network.isTor) {
-      proxyEl.innerHTML = `<span class="badge-tag tag-danger">TOR EXIT NODE</span> Known Relay Anonymizer`;
-    } else if (alert.network.isVpn || alert.network.isProxy) {
-      proxyEl.innerHTML = `<span class="badge-tag tag-warning">VPN / DATACENTER PROXY</span>`;
-    } else {
-      proxyEl.innerHTML = `<span class="badge-tag tag-clean">RESIDENTIAL ISP</span> Direct Connection`;
+    if (proxyEl) {
+      if (alert.device.isTor) {
+        proxyEl.innerHTML = `<span class="badge-tag tag-danger">TOR EXIT NODE</span> Known Relay Anonymizer`;
+      } else if (alert.device.isVpn) {
+        proxyEl.innerHTML = `<span class="badge-tag tag-warning">VPN / PROXY SWARM</span> Datacenter Node`;
+      } else {
+        proxyEl.innerHTML = `<span class="badge-tag tag-clean">DIRECT / TRUSTED</span> Terminal Connection`;
+      }
     }
 
-    const travelEl = document.getElementById('evNetTravel');
-    travelEl.textContent = `${alert.network.distanceFromBilling} from billing zip — ${alert.network.travelVelocity}`;
-    if (alert.network.travelVelocity.includes('Impossible')) {
-      travelEl.className = 'val-highlight text-danger';
-    } else {
-      travelEl.className = 'val-highlight';
+    const tzEl = document.getElementById('evDeviceTz');
+    if (tzEl) {
+      if (alert.geoHop && alert.geoHop.isImpossible) {
+        tzEl.textContent = `Geo Delta: ${alert.geoHop.distanceKm} (${alert.geoHop.speedKmh})`;
+        tzEl.className = 'dissect-sub mono text-danger';
+      } else if (alert.geoHop) {
+        tzEl.textContent = `Transit: ${alert.geoHop.distanceKm} (${alert.geoHop.timeDeltaMin})`;
+        tzEl.className = 'dissect-sub mono text-clean';
+      } else {
+        tzEl.textContent = 'Matched Location';
+        tzEl.className = 'dissect-sub mono';
+      }
     }
 
     // Evidence Section 5: Beneficiary & Counterparty
     const benefCard = document.getElementById('evidenceBeneficiaryCard');
-    if (benefCard) {
+    if (benefCard && alert.beneficiary) {
       benefCard.innerHTML = `
         <div class="evidence-grid-2">
           <div class="ev-item">
@@ -318,8 +353,14 @@ class SentryFraudConsole {
     this.renderTriggeredRules(alert.triggeredRules, alert.ruleConflict);
 
     // Populate Decision Dock
-    document.getElementById('decisionScoreDisplay').textContent = `${alert.riskSpectrum.totalScore} / 100`;
-    document.getElementById('decisionRecommendation').textContent = alert.riskSpectrum.recommendation.replace(/_/g, ' ');
+    setElemText('decisionScoreDisplay', `${alert.riskSpectrum.totalScore} / 100`);
+    const recEl = document.getElementById('decisionRecommendation');
+    if (recEl) {
+      recEl.textContent = alert.riskSpectrum.recommendation.replace(/_/g, ' ');
+      recEl.className = alert.riskSpectrum.totalScore >= 75 
+        ? 'score-dock-recommendation text-danger' 
+        : (alert.riskSpectrum.totalScore >= 50 ? 'score-dock-recommendation text-warning' : 'score-dock-recommendation text-clean');
+    }
     
     // Clear previous note input
     const noteArea = document.getElementById('analystNoteInput');
@@ -330,39 +371,20 @@ class SentryFraudConsole {
 
   renderRiskSpectrum(spectrum) {
     const container = document.getElementById('riskSpectrumBreakdown');
-    const bar = document.getElementById('riskSpectrumBar');
-    if (!container || !bar) return;
+    if (!container || !spectrum) return;
 
-    // Update total score text and color
-    const totalScoreEl = document.getElementById('spectrumTotalScore');
-    if (totalScoreEl) {
-      totalScoreEl.textContent = `${spectrum.totalScore} / 100 COMPOSITE RISK`;
-      totalScoreEl.className = spectrum.totalScore >= 75 
-        ? 'mono bold text-danger' 
-        : (spectrum.totalScore >= 50 ? 'mono bold text-warning' : 'mono bold text-clean');
-    }
-
-    // Segmented bar
-    bar.innerHTML = '';
-    spectrum.breakdown.forEach(seg => {
-      const segWidth = (seg.score / spectrum.totalScore) * 100;
-      const el = document.createElement('div');
-      el.className = 'spectrum-segment';
-      el.style.width = `${segWidth}%`;
-      el.style.backgroundColor = seg.color;
-      el.title = `${seg.category}: ${seg.score} pts`;
-      bar.appendChild(el);
-    });
-
-    // Score pills
+    // Render score pills / legend items beside donut gauge
     container.innerHTML = '';
-    spectrum.breakdown.forEach(seg => {
+    const breakdown = spectrum.breakdown || spectrum.drivers || [];
+    breakdown.forEach(seg => {
       const pill = document.createElement('div');
       pill.className = 'spectrum-legend-item';
+      const label = seg.category || seg.label || 'Risk Factor';
+      const score = seg.score !== undefined ? seg.score : (seg.points || 0);
+      const color = seg.color || '#EF4444';
       pill.innerHTML = `
-        <span class="spectrum-dot" style="background-color: ${seg.color};"></span>
-        <span class="spectrum-cat">${seg.category}</span>
-        <span class="spectrum-pts mono bold" style="color: ${seg.color};">+${seg.score}</span>
+        <span class="spectrum-cat"><span class="spectrum-dot" style="background-color: ${color};"></span>${label}</span>
+        <span class="spectrum-pts mono bold" style="color: ${color};">${score >= 0 ? '+' : ''}${score}</span>
       `;
       container.appendChild(pill);
     });
@@ -370,20 +392,20 @@ class SentryFraudConsole {
 
   renderTimeline(timeline) {
     const container = document.getElementById('evidenceTimelineList');
-    if (!container) return;
+    if (!container || !timeline) return;
 
     container.innerHTML = '';
     timeline.forEach(item => {
       const row = document.createElement('div');
-      row.className = `timeline-row type-${item.type}`;
+      row.className = `timeline-row type-${item.type || 'clean'}`;
       row.innerHTML = `
         <div class="timeline-bullet"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <span class="timeline-title">${item.event}</span>
-            <span class="timeline-time mono">${item.timestamp}</span>
+            <span class="timeline-title">${item.title || item.event || ''}</span>
+            <span class="timeline-time mono">${item.time || item.timestamp || ''}</span>
           </div>
-          <div class="timeline-detail">${item.detail}</div>
+          <div class="timeline-detail">${item.desc || item.detail || ''}</div>
         </div>
       `;
       container.appendChild(row);
@@ -409,20 +431,23 @@ class SentryFraudConsole {
       container.appendChild(conflictBanner);
     }
 
-    rules.forEach(rule => {
-      const item = document.createElement('div');
-      item.className = `rule-item-card sev-${rule.severity.toLowerCase()}`;
-      item.innerHTML = `
-        <div class="rule-top">
-          <span class="rule-id mono">${rule.id}</span>
-          <span class="rule-name">${rule.name}</span>
-          <span class="badge-severity ${rule.severity.toLowerCase()}">${rule.severity}</span>
-        </div>
-        <div class="rule-condition mono">${rule.condition}</div>
-        <div class="rule-action">Action: <span class="mono bold">${rule.action}</span></div>
-      `;
-      container.appendChild(item);
-    });
+    if (rules && Array.isArray(rules)) {
+      rules.forEach(rule => {
+        const item = document.createElement('div');
+        const sevClass = (rule.severity || 'HIGH').toLowerCase();
+        item.className = `rule-item-card sev-${sevClass}`;
+        item.innerHTML = `
+          <div class="rule-top">
+            <span class="rule-id mono">${rule.id}</span>
+            <span class="rule-name">${rule.name}</span>
+            <span class="badge-severity ${sevClass}">${rule.severity || 'TRIGGERED'}</span>
+          </div>
+          <div class="rule-condition mono">${rule.condition || 'Pre-configured Operational Risk Trigger'}</div>
+          <div class="rule-action">Action: <span class="mono bold">${rule.action || 'Hold for Manual Review'}</span></div>
+        `;
+        container.appendChild(item);
+      });
+    }
   }
 
   executeDecision(verdict, defaultNote) {

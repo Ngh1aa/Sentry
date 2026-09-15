@@ -42,13 +42,17 @@ SENTRY Console
 
 ---
 
-## 03. Visual Direction & Signatures
+## 03. Visual Direction & Signatures (Visual-First Architecture)
 
-- **Visual Direction**: `forensic / dense / controlled` — Clean institutional fintech palette (clinical light default with terminal slate dark mode for night shift operations). Zero cyberpunk, zero decorative sci-fi tropes.
-- **Visual Signature 1 — Risk Spectrum**:
-  - A segmented composite risk bar breaking down exact categorical score contributions (Device Spoofing, Impossible Travel, Velocity Deviation, High-Risk Beneficiary).
-- **Visual Signature 2 — Evidence Trace**:
-  - A vertical chronological delta showing normal account baseline vs recent anomalous events leading to the flagged transaction.
+- **Visual Direction**: `forensic / dense / controlled` — High-density dark terminal theme (`#0B0F19` deep space background, `#131A2B` elevated cards) with clinical light theme support. Minimalist, institutional, zero sci-fi clichés.
+- **Visual Telemetry & Diagram Cards**:
+  1. **Radial Donut Risk Gauge**: Circular SVG donut ring (`94% CRITICAL`, `62% REVIEW`) with animated stroke-dashoffset, dynamic categorical point breakdowns (+32 Device, +28 Travel, +22 Velocity, +12 Beneficiary).
+  2. **Spend Velocity Spline Wave Chart**: Smooth cubic Bezier spline with gradient area fill, baseline normal curve, and glowing anomaly peak tag (`$8,450`, `€4,200`).
+  3. **Virtual / Physical Payment Instrument**: Realistic glassmorphic debit card widget (gradient skins, gold EMV chip, contactless wave icon, cardholder name, masked PAN, expiry date).
+  4. **Geolocation Flight Hop Diagram**: Parabolic flight arc between origin and destination with distance (`5,860 km`), time delta (`42 min`), velocity (`8,790 km/h`), and impossible travel warning.
+  5. **Device Fingerprint & Hardware Leak Dissector**: Side-by-side comparison of claimed user-agent vs actual hardware leak with Canvas Spoof Detection badges.
+  6. **360° Entity Relationship Flow Graph**: Interactive node-to-node transaction and exfiltration path diagram.
+  7. **Evidence Trace & Policy Rules**: Chronological timeline comparing account history against recent anomalies, plus real-time Rule Conflict detection (Rule 301 vs Rule 012 VIP Exemption).
 - **State Handling**:
   - `HIGH_RISK` (Critical composite score > 75, immediate freeze recommendation).
   - `RULE_CONFLICT` (System conflict detected, e.g. Rule 301 Foreign Luxury Hold vs Rule 012 VIP Exemption, requiring manual analyst precedence).
