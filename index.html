@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTRY // Autonomous Cyber Defense & Cloud Sentinel Platform</title>
+  <meta name="description" content="Next-Generation Autonomous Threat Hunting, Zero-Trust Micro-Segmentation & Real-Time Observability Intelligence.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300F0FF'><path d='M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.58-3.15 8.87-7 9.94-3.85-1.07-7-5.36-7-9.94V7.3l7-3.12z'/></svg>">
+</head>
+<body>
+
+  <!-- Tactical Global Header -->
+  <header class="sentry-header">
+    <div class="brand-block">
+      <div class="brand-icon-shield">
+        <svg class="brand-shield-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L3 6V12C3 17.55 6.84 22.74 12 24C17.16 22.74 21 17.55 21 12V6L12 2Z" stroke="#00F0FF" stroke-width="1.8" fill="rgba(0, 240, 255, 0.12)"/>
+          <path d="M12 7L16 11H13V17H11V11H8L12 7Z" fill="#00FF9D"/>
+        </svg>
+      </div>
+      <div class="brand-title-wrap">
+        <div class="brand-name">
+          SENTRY <span class="badge-ver">v4.8-CORE</span>
+        </div>
+        <div class="brand-sub">Autonomous Defense & Telemetry Sentinel</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="header-nav-tabs" aria-label="Main Navigation">
+      <button class="nav-tab active" data-view="warroom" id="tab-warroom">
+        <span class="tab-key">1</span> WAR ROOM
+      </button>
+      <button class="nav-tab" data-view="threats" id="tab-threats">
+        <span class="tab-key">2</span> THREAT MATRIX
+      </button>
+      <button class="nav-tab" data-view="fleet" id="tab-fleet">
+        <span class="tab-key">3</span> GLOBAL FLEET
+      </button>
+      <button class="nav-tab" data-view="policies" id="tab-policies">
+        <span class="tab-key">4</span> AI POLICIES
+      </button>
+      <button class="nav-tab" data-view="forensics" id="tab-forensics">
+        <span class="tab-key">5</span> AUDIT & FORENSICS
+      </button>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn-tactical btn-simulate" id="btnSimulateAttack" title="Trigger a live simulated Zero-Day cyber assault to test Sentinel containment">
+        <span>⚡</span> SIMULATE ATTACK <span class="tab-key">S</span>
+      </button>
+      <button class="btn-tactical" id="btnAudioToggle" title="Toggle Web Audio procedural sound effects">
+        <span class="icon">🔊</span> SFX: ON <span class="tab-key">M</span>
+      </button>
+      <div class="role-select-wrap">
+        <span class="role-select-label">ROLE:</span>
+        <select class="role-select" id="roleSelector" aria-label="Operational Persona">
+          <option value="Commander L4">Commander (L4)</option>
+          <option value="SecOps Lead">Lead SecOps</option>
+          <option value="CISO">CISO Executive</option>
+          <option value="Audit Officer">Forensics Auditor</option>
+        </select>
+      </div>
+      <div class="agent-profile-pill">
+        <div class="agent-avatar"></div>
+        <span class="agent-name">NG-07</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Operational Ticker Bar -->
+  <aside class="sentry-kpi-bar" aria-label="Fleet Telemetry Overview">
+    <div class="kpi-item">
+      <span class="kpi-label">SYSTEM DEFENSE POSTURE</span>
+      <div class="kpi-val-group">
+        <span class="status-pill defcon-5" id="kpiDefcon">DEFCON 5 // OPTIMAL SHIELD</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">BLOCKED THREATS (24H)</span>
+      <div class="kpi-val-group">
+        <span class="kpi-value mono accent-cyan" id="kpiBlocked">1,294,803</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">INGRESS THROUGHPUT</span>
+      <div class="kpi-val-group">
+        <span class="kpi-value mono" id="kpiIngress">4.82 TB/s</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">FLEET P99 LATENCY</span>
+      <div class="kpi-val-group">
+        <span class="kpi-value mono accent-green" id="kpiLatency">14.2 ms</span>
+        <div class="sparkline-wrap">
+          <svg id="telemetrySparkline" viewBox="0 0 280 48" preserveAspectRatio="none" style="width: 100%; height: 100%;"></svg>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">EDGE MESH CLUSTERS</span>
+      <div class="kpi-val-group">
+        <span class="kpi-value mono" id="kpiNodes">48/48 NODES</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Emergency Red-Team Assault Banner (Activates when Attack is Simulated) -->
+  <section class="emergency-alert-banner" id="emergencyAlertBanner" aria-live="assertive">
+    <div class="emergency-alert-content">
+      <div class="alert-siren-icon">🚨</div>
+      <div>
+        <div class="emergency-title">DEFCON 2 ALERT: INBOUND ZERO-DAY EXPLOIT TARGETING NEURAL VAULT</div>
+        <div class="emergency-log" id="emergencyLog">
+          <span class="mono">> Rogue swarm detected via 198.51.100.99. Cosine similarity 0.94 evasion signature.</span>
+        </div>
+      </div>
+    </div>
+    <div class="emergency-actions">
+      <button class="btn-emergency-airgap" id="btnEmergencyAirgap">
+        ENGAGE SENTINEL AIR-GAP [A]
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Multi-View Application Canvas -->
+  <main class="sentry-app-main">
+
+    <!-- VIEW 1: WAR ROOM // OVERVIEW -->
+    <section class="app-view active" id="view-warroom">
+      <div class="warroom-grid">
+        
+        <!-- Left Column: Tactical Orbital Radar & Telemetry -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <span class="panel-indicator"></span>
+              <h2 class="panel-title">GLOBAL ORBITAL THREAT RADAR & MESH</h2>
+            </div>
+            <div class="panel-subtitle">LIVE 360° SWEEP // 6 GLOBAL ZONES ACTIVE</div>
+          </div>
+          <div class="panel-body">
+            <div class="radar-viewport-container" id="radarContainer">
+              <canvas id="radarCanvas"></canvas>
+              <div class="radar-hud-overlay">
+                <div>SWEEP: 360° ACTIVE</div>
+                <div>SCANNER: eBPF RING 0</div>
+                <div>POLAR REF: ZRH-01</div>
+              </div>
+              <div class="radar-hud-bottom">
+                <div>LATENCY REF: 8.4ms HND</div>
+                <div>INTERCEPT READY: 100%</div>
+              </div>
+            </div>
+
+            <!-- Telemetry Gauges Below Radar -->
+            <div class="telemetry-row">
+              <div class="telemetry-stat-card">
+                <div class="telemetry-stat-label">NEURAL TRIAGE ACCURACY</div>
+                <div class="telemetry-stat-val accent-cyan">99.8%</div>
+                <div class="telemetry-stat-sub">Zero false positives in 72h</div>
+              </div>
+              <div class="telemetry-stat-card">
+                <div class="telemetry-stat-label">MEAN TIME TO CONTAIN (MTTC)</div>
+                <div class="telemetry-stat-val accent-green">240 ms</div>
+                <div class="telemetry-stat-sub">Autonomous eBPF isolate</div>
+              </div>
+              <div class="telemetry-stat-card">
+                <div class="telemetry-stat-label">KERNEL FIREWALL RULES</div>
+                <div class="telemetry-stat-val mono">18,420</div>
+                <div class="telemetry-stat-sub">Synchronized across 48 pods</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Live Real-Time Incident Stream -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <span class="panel-indicator" style="background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber);"></span>
+              <h2 class="panel-title">LIVE INCIDENT STREAM & ANOMALIES</h2>
+            </div>
+            <div class="panel-subtitle">REAL-TIME INGRESS DISSECTOR</div>
+          </div>
+          <div class="panel-body">
+            <div class="incident-feed-container" id="incidentFeedContainer">
+              <!-- Dynamically populated via js/app.js -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 2: THREAT MATRIX -->
+    <section class="app-view" id="view-threats">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <span class="panel-indicator"></span>
+            <h2 class="panel-title">THREAT INTELLIGENCE & EXPLOIT REPOSITORY</h2>
+          </div>
+          <div class="panel-subtitle">ZERO-DAY / L7 DDOS / ADVERSARIAL TENSORS</div>
+        </div>
+        <div class="panel-body">
+          <div class="threat-matrix-toolbar">
+            <div class="search-box-wrap">
+              <input type="text" class="search-input" id="threatSearchInput" placeholder="Filter by ID, Vector, Target, or IP (e.g. prompt, flood, 198.51)...">
+            </div>
+            <div class="filter-chips-group">
+              <button class="filter-chip active" data-severity="ALL">ALL SEVERITIES</button>
+              <button class="filter-chip" data-severity="CRITICAL">CRITICAL (P0)</button>
+              <button class="filter-chip" data-severity="HIGH">HIGH (P1)</button>
+              <button class="filter-chip" data-severity="MEDIUM">MEDIUM (P2)</button>
+              <button class="filter-chip" data-severity="LOW">LOW (P3)</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="tactical-table">
+              <thead>
+                <tr>
+                  <th>INCIDENT ID</th>
+                  <th>SEVERITY</th>
+                  <th>ATTACK VECTOR & TITLE</th>
+                  <th>TARGET ENTITY</th>
+                  <th>SOURCE & GEO</th>
+                  <th>CONTAINMENT</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="threatMatrixBody">
+                <!-- Dynamically populated via js/app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: GLOBAL FLEET & NODES -->
+    <section class="app-view" id="view-fleet">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <span class="panel-indicator"></span>
+            <h2 class="panel-title">GLOBAL EDGE CLUSTERS & SENTINEL MESH</h2>
+          </div>
+          <div class="panel-subtitle">48 HIGH-AVAILABILITY CLOUD REGIONS & AIR-GAPPED VAULTS</div>
+        </div>
+        <div class="panel-body">
+          <div class="fleet-grid" id="fleetNodesGrid">
+            <!-- Dynamically populated via js/app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: AI AUTONOMOUS POLICIES -->
+    <section class="app-view" id="view-policies">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <span class="panel-indicator" style="background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple);"></span>
+            <h2 class="panel-title">AUTONOMOUS DEFENSE POLICIES & AI GUARDRAILS</h2>
+          </div>
+          <div class="panel-subtitle">SELF-HEALING ZERO-TRUST LOGIC GRAPHS</div>
+        </div>
+        <div class="panel-body">
+          <div class="policies-list" id="policiesList">
+            <!-- Dynamically populated via js/app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: AUDIT & FORENSICS -->
+    <section class="app-view" id="view-forensics">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <span class="panel-indicator"></span>
+            <h2 class="panel-title">IMMUTABLE CRYPTOGRAPHIC AUDIT LEDGER</h2>
+          </div>
+          <div class="panel-subtitle">SHA-256 ZERO-KNOWLEDGE PROOF PROVENANCE</div>
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="tactical-table">
+              <thead>
+                <tr>
+                  <th>AUDIT ID</th>
+                  <th>TIMESTAMP (UTC)</th>
+                  <th>EVENT TYPE</th>
+                  <th>ACTOR / DAEMON</th>
+                  <th>TARGET ENTITY</th>
+                  <th>ZKP MERKLE PROOF</th>
+                  <th>VERDICT</th>
+                </tr>
+              </thead>
+              <tbody id="forensicsTableBody">
+                <!-- Dynamically populated via js/app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Incident Deep-Dive Slide-Over Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="incident-drawer" id="incidentDrawer" aria-label="Incident Deep-Dive Inspector">
+    <div class="drawer-header">
+      <div class="drawer-header-left">
+        <span class="badge-severity" id="drawerSeverity">CRITICAL</span>
+        <span class="mono accent-cyan" id="drawerIncidentId">INC-9402</span>
+      </div>
+      <button class="btn-close-drawer" id="btnCloseDrawer" title="Close Drawer (Esc)">&times;</button>
+    </div>
+
+    <div class="drawer-body">
+      <h2 class="drawer-title" id="drawerTitle">Incident Title</h2>
+
+      <div class="drawer-section">
+        <span class="drawer-section-title">ORIGIN & VECTOR TELEMETRY</span>
+        <div class="drawer-meta-grid">
+          <div>
+            <span class="meta-label">TARGET POD:</span>
+            <div id="drawerTarget" class="mono">target</div>
+          </div>
+          <div>
+            <span class="meta-label">VECTOR:</span>
+            <div id="drawerVector" class="mono">vector</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <span class="meta-label">SOURCE IP & NETWORK:</span>
+            <div id="drawerSource" class="mono">source</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <span class="drawer-section-title">SENTINEL AI ROOT CAUSE & TRIAGE</span>
+        <div class="telemetry-stat-card" style="background: rgba(0, 240, 255, 0.04); border-color: rgba(0, 240, 255, 0.2);">
+          <div id="drawerAiRemediation" style="font-size: 0.82rem; color: #E2E8F0; line-height: 1.45;">AI Remediation</div>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <span class="drawer-section-title">DISTRIBUTED TRACE WATERFALL</span>
+        <div class="trace-waterfall-box" id="drawerTraceWaterfall">
+          <!-- Populated dynamically via js/app.js -->
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <span class="drawer-section-title">RAW PAYLOAD DISSECTOR (HEX/JSON)</span>
+        <pre class="payload-box" id="drawerRawPayload">// Payload stream</pre>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn-drawer-quarantine" id="btnDrawerQuarantine">EXECUTE ISOLATION & DUMP PCAP</button>
+    </div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/radar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
