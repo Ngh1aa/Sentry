@@ -3,379 +3,471 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SENTRY // Autonomous Cyber Defense & Cloud Sentinel Platform</title>
-  <meta name="description" content="Next-Generation Autonomous Threat Hunting, Zero-Trust Micro-Segmentation & Real-Time Observability Intelligence.">
+  <title>SENTRY — Fraud & Risk Operations Console</title>
+  <meta name="description" content="Forensic risk operations console for high-stakes fraud investigation, evidence correlation, and rapid decisioning.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300F0FF'><path d='M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.58-3.15 8.87-7 9.94-3.85-1.07-7-5.36-7-9.94V7.3l7-3.12z'/></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230F172A'><path d='M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.58-3.15 8.87-7 9.94-3.85-1.07-7-5.36-7-9.94V7.3l7-3.12z'/></svg>">
 </head>
 <body>
 
-  <!-- Tactical Global Header -->
-  <header class="sentry-header">
-    <div class="brand-block">
-      <div class="brand-icon-shield">
+  <!-- Top Navigation Strip -->
+  <header class="sentry-top-bar">
+    <div class="brand-section">
+      <div class="brand-mark">
         <svg class="brand-shield-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L3 6V12C3 17.55 6.84 22.74 12 24C17.16 22.74 21 17.55 21 12V6L12 2Z" stroke="#00F0FF" stroke-width="1.8" fill="rgba(0, 240, 255, 0.12)"/>
-          <path d="M12 7L16 11H13V17H11V11H8L12 7Z" fill="#00FF9D"/>
+          <path d="M12 2L3 6V12C3 17.55 6.84 22.74 12 24C17.16 22.74 21 17.55 21 12V6L12 2Z" fill="currentColor"/>
+          <path d="M12 7L16 11H13V17H11V11H8L12 7Z" fill="#FFFFFF"/>
         </svg>
-      </div>
-      <div class="brand-title-wrap">
-        <div class="brand-name">
-          SENTRY <span class="badge-ver">v4.8-CORE</span>
-        </div>
-        <div class="brand-sub">Autonomous Defense & Telemetry Sentinel</div>
+        <span class="brand-name">SENTRY</span>
+        <span class="console-label">Fraud & Risk Operations Console</span>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <nav class="header-nav-tabs" aria-label="Main Navigation">
-      <button class="nav-tab active" data-view="warroom" id="tab-warroom">
-        <span class="tab-key">1</span> WAR ROOM
+    <nav class="nav-tabs-group" aria-label="Operations Navigation">
+      <button class="nav-tab active" data-view="queue">
+        <span class="tab-idx">1</span> Alert Queue
       </button>
-      <button class="nav-tab" data-view="threats" id="tab-threats">
-        <span class="tab-key">2</span> THREAT MATRIX
+      <button class="nav-tab" data-view="cases">
+        <span class="tab-idx">2</span> Cases
       </button>
-      <button class="nav-tab" data-view="fleet" id="tab-fleet">
-        <span class="tab-key">3</span> GLOBAL FLEET
+      <button class="nav-tab" data-view="rules">
+        <span class="tab-idx">3</span> Rules Engine
       </button>
-      <button class="nav-tab" data-view="policies" id="tab-policies">
-        <span class="tab-key">4</span> AI POLICIES
+      <button class="nav-tab" data-view="customers">
+        <span class="tab-idx">4</span> Customers
       </button>
-      <button class="nav-tab" data-view="forensics" id="tab-forensics">
-        <span class="tab-key">5</span> AUDIT & FORENSICS
+      <button class="nav-tab" data-view="analytics">
+        <span class="tab-idx">5</span> Analytics
+      </button>
+      <button class="nav-tab" data-view="audit">
+        <span class="tab-idx">6</span> Audit Log
       </button>
     </nav>
 
-    <!-- Header Actions -->
-    <div class="header-actions">
-      <button class="btn-tactical btn-simulate" id="btnSimulateAttack" title="Trigger a live simulated Zero-Day cyber assault to test Sentinel containment">
-        <span>⚡</span> SIMULATE ATTACK <span class="tab-key">S</span>
-      </button>
-      <button class="btn-tactical" id="btnAudioToggle" title="Toggle Web Audio procedural sound effects">
-        <span class="icon">🔊</span> SFX: ON <span class="tab-key">M</span>
-      </button>
-      <div class="role-select-wrap">
-        <span class="role-select-label">ROLE:</span>
-        <select class="role-select" id="roleSelector" aria-label="Operational Persona">
-          <option value="Commander L4">Commander (L4)</option>
-          <option value="SecOps Lead">Lead SecOps</option>
-          <option value="CISO">CISO Executive</option>
-          <option value="Audit Officer">Forensics Auditor</option>
-        </select>
+    <!-- Header Right -->
+    <div class="header-right">
+      <div class="shift-status-pill">
+        <span class="shift-status-dot"></span>
+        <span>Day Shift (EMEA / AMER)</span>
       </div>
-      <div class="agent-profile-pill">
-        <div class="agent-avatar"></div>
-        <span class="agent-name">NG-07</span>
+      <div class="analyst-badge">
+        <div class="analyst-avatar">DN</div>
+        <span>Đỗ Anh Nghĩa (Senior Analyst)</span>
       </div>
+      <button class="btn-theme-toggle" id="btnThemeToggle" title="Toggle Clinical Dark / Light Theme">
+        <span class="icon">🌙</span> Dark Terminal
+      </button>
     </div>
   </header>
 
-  <!-- KPI Operational Ticker Bar -->
-  <aside class="sentry-kpi-bar" aria-label="Fleet Telemetry Overview">
-    <div class="kpi-item">
-      <span class="kpi-label">SYSTEM DEFENSE POSTURE</span>
-      <div class="kpi-val-group">
-        <span class="status-pill defcon-5" id="kpiDefcon">DEFCON 5 // OPTIMAL SHIELD</span>
-      </div>
+  <!-- Sub-Header KPI Ticker -->
+  <aside class="sentry-kpi-strip" aria-label="Operational Telemetry">
+    <div class="kpi-block">
+      <span class="kpi-lbl">Queue Workload:</span>
+      <span class="kpi-val text-danger" id="kpiOpenAlerts">24 Pending Reviews</span>
     </div>
-    <div class="kpi-item">
-      <span class="kpi-label">BLOCKED THREATS (24H)</span>
-      <div class="kpi-val-group">
-        <span class="kpi-value mono accent-cyan" id="kpiBlocked">1,294,803</span>
-      </div>
+    <div class="kpi-block">
+      <span class="kpi-lbl">Mean Time to Decide (MTTD):</span>
+      <span class="kpi-val">3.4 min</span>
     </div>
-    <div class="kpi-item">
-      <span class="kpi-label">INGRESS THROUGHPUT</span>
-      <div class="kpi-val-group">
-        <span class="kpi-value mono" id="kpiIngress">4.82 TB/s</span>
-      </div>
+    <div class="kpi-block">
+      <span class="kpi-lbl">False Positive Rate:</span>
+      <span class="kpi-val text-clean">2.1% (Target &lt; 3.0%)</span>
     </div>
-    <div class="kpi-item">
-      <span class="kpi-label">FLEET P99 LATENCY</span>
-      <div class="kpi-val-group">
-        <span class="kpi-value mono accent-green" id="kpiLatency">14.2 ms</span>
-        <div class="sparkline-wrap">
-          <svg id="telemetrySparkline" viewBox="0 0 280 48" preserveAspectRatio="none" style="width: 100%; height: 100%;"></svg>
-        </div>
-      </div>
+    <div class="kpi-block">
+      <span class="kpi-lbl">Autonomous Intercepts Today:</span>
+      <span class="kpi-val">1,840 Transactions</span>
     </div>
-    <div class="kpi-item">
-      <span class="kpi-label">EDGE MESH CLUSTERS</span>
-      <div class="kpi-val-group">
-        <span class="kpi-value mono" id="kpiNodes">48/48 NODES</span>
-      </div>
+    <div class="kpi-block">
+      <span class="kpi-lbl">Risk Appetite Threshold:</span>
+      <span class="kpi-val">75 / 100</span>
     </div>
   </aside>
 
-  <!-- Emergency Red-Team Assault Banner (Activates when Attack is Simulated) -->
-  <section class="emergency-alert-banner" id="emergencyAlertBanner" aria-live="assertive">
-    <div class="emergency-alert-content">
-      <div class="alert-siren-icon">🚨</div>
-      <div>
-        <div class="emergency-title">DEFCON 2 ALERT: INBOUND ZERO-DAY EXPLOIT TARGETING NEURAL VAULT</div>
-        <div class="emergency-log" id="emergencyLog">
-          <span class="mono">> Rogue swarm detected via 198.51.100.99. Cosine similarity 0.94 evasion signature.</span>
-        </div>
-      </div>
-    </div>
-    <div class="emergency-actions">
-      <button class="btn-emergency-airgap" id="btnEmergencyAirgap">
-        ENGAGE SENTINEL AIR-GAP [A]
-      </button>
-    </div>
-  </section>
+  <!-- Main View Router -->
+  <main>
 
-  <!-- Main Multi-View Application Canvas -->
-  <main class="sentry-app-main">
+    <!-- HERO SCREEN: Split Investigation Workspace -->
+    <section class="console-view active" id="view-queue">
+      <div class="split-workspace-layout">
 
-    <!-- VIEW 1: WAR ROOM // OVERVIEW -->
-    <section class="app-view active" id="view-warroom">
-      <div class="warroom-grid">
-        
-        <!-- Left Column: Tactical Orbital Radar & Telemetry -->
-        <div class="panel-card">
-          <div class="panel-header">
-            <div class="panel-title-wrap">
-              <span class="panel-indicator"></span>
-              <h2 class="panel-title">GLOBAL ORBITAL THREAT RADAR & MESH</h2>
+        <!-- Left Rail: Alert Queue (320px) -->
+        <aside class="split-queue-rail" aria-label="Investigation Queue">
+          <div class="queue-header-box">
+            <div class="queue-title-row">
+              <span class="queue-title">Investigation Queue</span>
+              <span class="queue-count-pill" id="queueCountBadge">5 Alerts</span>
             </div>
-            <div class="panel-subtitle">LIVE 360° SWEEP // 6 GLOBAL ZONES ACTIVE</div>
-          </div>
-          <div class="panel-body">
-            <div class="radar-viewport-container" id="radarContainer">
-              <canvas id="radarCanvas"></canvas>
-              <div class="radar-hud-overlay">
-                <div>SWEEP: 360° ACTIVE</div>
-                <div>SCANNER: eBPF RING 0</div>
-                <div>POLAR REF: ZRH-01</div>
-              </div>
-              <div class="radar-hud-bottom">
-                <div>LATENCY REF: 8.4ms HND</div>
-                <div>INTERCEPT READY: 100%</div>
-              </div>
-            </div>
-
-            <!-- Telemetry Gauges Below Radar -->
-            <div class="telemetry-row">
-              <div class="telemetry-stat-card">
-                <div class="telemetry-stat-label">NEURAL TRIAGE ACCURACY</div>
-                <div class="telemetry-stat-val accent-cyan">99.8%</div>
-                <div class="telemetry-stat-sub">Zero false positives in 72h</div>
-              </div>
-              <div class="telemetry-stat-card">
-                <div class="telemetry-stat-label">MEAN TIME TO CONTAIN (MTTC)</div>
-                <div class="telemetry-stat-val accent-green">240 ms</div>
-                <div class="telemetry-stat-sub">Autonomous eBPF isolate</div>
-              </div>
-              <div class="telemetry-stat-card">
-                <div class="telemetry-stat-label">KERNEL FIREWALL RULES</div>
-                <div class="telemetry-stat-val mono">18,420</div>
-                <div class="telemetry-stat-sub">Synchronized across 48 pods</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Column: Live Real-Time Incident Stream -->
-        <div class="panel-card">
-          <div class="panel-header">
-            <div class="panel-title-wrap">
-              <span class="panel-indicator" style="background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber);"></span>
-              <h2 class="panel-title">LIVE INCIDENT STREAM & ANOMALIES</h2>
-            </div>
-            <div class="panel-subtitle">REAL-TIME INGRESS DISSECTOR</div>
-          </div>
-          <div class="panel-body">
-            <div class="incident-feed-container" id="incidentFeedContainer">
-              <!-- Dynamically populated via js/app.js -->
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- VIEW 2: THREAT MATRIX -->
-    <section class="app-view" id="view-threats">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div class="panel-title-wrap">
-            <span class="panel-indicator"></span>
-            <h2 class="panel-title">THREAT INTELLIGENCE & EXPLOIT REPOSITORY</h2>
-          </div>
-          <div class="panel-subtitle">ZERO-DAY / L7 DDOS / ADVERSARIAL TENSORS</div>
-        </div>
-        <div class="panel-body">
-          <div class="threat-matrix-toolbar">
-            <div class="search-box-wrap">
-              <input type="text" class="search-input" id="threatSearchInput" placeholder="Filter by ID, Vector, Target, or IP (e.g. prompt, flood, 198.51)...">
-            </div>
-            <div class="filter-chips-group">
-              <button class="filter-chip active" data-severity="ALL">ALL SEVERITIES</button>
-              <button class="filter-chip" data-severity="CRITICAL">CRITICAL (P0)</button>
-              <button class="filter-chip" data-severity="HIGH">HIGH (P1)</button>
-              <button class="filter-chip" data-severity="MEDIUM">MEDIUM (P2)</button>
-              <button class="filter-chip" data-severity="LOW">LOW (P3)</button>
+            <input type="text" class="queue-search-input" id="alertSearchInput" placeholder="Search customer, ID, IP, or merchant...">
+            <div class="filter-buttons-row">
+              <button class="filter-btn active" data-filter="ALL">All</button>
+              <button class="filter-btn" data-filter="HIGH_RISK">High Risk</button>
+              <button class="filter-btn" data-filter="RULE_CONFLICT">Rule Conflicts</button>
+              <button class="filter-btn" data-filter="NEEDS_VERIFICATION">Verify</button>
+              <button class="filter-btn" data-filter="FROZEN">Frozen</button>
             </div>
           </div>
 
-          <div class="table-responsive">
-            <table class="tactical-table">
-              <thead>
-                <tr>
-                  <th>INCIDENT ID</th>
-                  <th>SEVERITY</th>
-                  <th>ATTACK VECTOR & TITLE</th>
-                  <th>TARGET ENTITY</th>
-                  <th>SOURCE & GEO</th>
-                  <th>CONTAINMENT</th>
-                  <th>ACTION</th>
-                </tr>
-              </thead>
-              <tbody id="threatMatrixBody">
-                <!-- Dynamically populated via js/app.js -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 3: GLOBAL FLEET & NODES -->
-    <section class="app-view" id="view-fleet">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div class="panel-title-wrap">
-            <span class="panel-indicator"></span>
-            <h2 class="panel-title">GLOBAL EDGE CLUSTERS & SENTINEL MESH</h2>
-          </div>
-          <div class="panel-subtitle">48 HIGH-AVAILABILITY CLOUD REGIONS & AIR-GAPPED VAULTS</div>
-        </div>
-        <div class="panel-body">
-          <div class="fleet-grid" id="fleetNodesGrid">
+          <div class="alert-queue-list" id="alertQueueList">
             <!-- Dynamically populated via js/app.js -->
           </div>
-        </div>
+        </aside>
+
+        <!-- Center Canvas: Evidence Workspace (1fr) -->
+        <section class="split-evidence-canvas" aria-label="Forensic Evidence Canvas">
+          
+          <!-- Alert Summary Header Strip -->
+          <div class="evidence-header-strip">
+            <div class="evidence-header-left">
+              <span class="evidence-header-id mono" id="evidenceAlertId">ALT-8921</span>
+              <span class="evidence-header-case mono" id="evidenceCaseId">CASE-4401</span>
+              <span class="badge-status badge-danger" id="evidenceStateBadge">HIGH RISK</span>
+            </div>
+            <div class="evidence-header-time mono" id="evidenceTimestamp">2026-09-16 01:14:22 UTC</div>
+          </div>
+
+          <!-- Visual Signature 1: Risk Spectrum Bar -->
+          <div class="risk-spectrum-box">
+            <div class="spectrum-top-row">
+              <span class="spectrum-title">VISUAL SIGNATURE // RISK SPECTRUM CONTRIBUTION</span>
+              <span class="mono bold text-danger" id="spectrumTotalScore">94 / 100 COMPOSITE RISK</span>
+            </div>
+            <div class="spectrum-track" id="riskSpectrumBar">
+              <!-- Rendered dynamically -->
+            </div>
+            <div class="spectrum-breakdown-row" id="riskSpectrumBreakdown">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Visual Signature 2: Evidence Trace & Historical Timeline -->
+          <div class="evidence-trace-box">
+            <div class="trace-header">VISUAL SIGNATURE // EVIDENCE TRACE & BEHAVIORAL DELTA</div>
+            <div class="timeline-list" id="evidenceTimelineList">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Evidence Cards Grid -->
+          <div class="evidence-cards-grid">
+
+            <!-- Evidence 1: Transaction & Velocity -->
+            <div class="evidence-card">
+              <div class="card-title">01. TRANSACTION & VELOCITY TELEMETRY</div>
+              <div class="evidence-grid-2">
+                <div class="ev-item">
+                  <span class="ev-label">TRANSACTION AMOUNT</span>
+                  <span class="ev-val mono bold text-danger" id="evTxAmount">$8,450.00 USD</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">PAYMENT CHANNEL</span>
+                  <span class="ev-val mono" id="evTxType">Instant Wire</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">MERCHANT & MCC</span>
+                  <span class="ev-val" id="evTxMerchant">Panama Vault Remit (MCC 6051)</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">PAYMENT INSTRUMENT</span>
+                  <span class="ev-val mono" id="evTxMethod">Checking •••• 8912</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">10-MIN VELOCITY</span>
+                  <span class="ev-val mono text-danger" id="evTxVelocity10m">$8,450 vs $120 avg</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">24-HOUR VELOCITY</span>
+                  <span class="ev-val mono text-danger" id="evTxVelocity24h">$14,800 vs $850 avg</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evidence 2: Customer Identity & Profile -->
+            <div class="evidence-card">
+              <div class="card-title">02. CUSTOMER ENTITY & TRUST PROFILE</div>
+              <div class="evidence-grid-2">
+                <div class="ev-item">
+                  <span class="ev-label">CUSTOMER NAME</span>
+                  <span class="ev-val bold" id="evCustName">Eleanor Vance</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">CUSTOMER ID</span>
+                  <span class="ev-val mono" id="evCustId">CUST-90412</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">ACCOUNT TENURE</span>
+                  <span class="ev-val mono" id="evCustAccountAge">4 years, 2 months</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">TRUST TIER STATUS</span>
+                  <span class="ev-val mono" id="evCustTrustTier">Gold (Degraded)</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">LIFETIME VOLUME</span>
+                  <span class="ev-val mono" id="evCustVolume">$482,900 USD</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">DISPUTE HISTORY</span>
+                  <span class="ev-val mono" id="evCustDisputes">0 Prior Chargebacks</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evidence 3: Device Fingerprint & Spoofing -->
+            <div class="evidence-card">
+              <div class="card-title">03. DEVICE FINGERPRINT & AUTHENTICITY</div>
+              <div class="evidence-grid-2">
+                <div class="ev-item">
+                  <span class="ev-label">FINGERPRINT HASH</span>
+                  <span class="ev-val mono" id="evDeviceFp">fp_9f4b23_c91d8e</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">REPORTED USER-AGENT</span>
+                  <span class="ev-val" id="evDeviceOS">macOS 14.5 / Safari 17.4</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">CANVAS HARDWARE HASH</span>
+                  <span class="ev-val" id="evDeviceCanvas">Mismatch</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">DEVICE HISTORY</span>
+                  <span class="ev-val" id="evDeviceHistory">First seen 42m ago</span>
+                </div>
+                <div class="ev-item" style="grid-column: 1 / -1;">
+                  <span class="ev-label">TIMEZONE INTEGRITY</span>
+                  <span class="ev-val mono text-danger" id="evDeviceTz">MISMATCH</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evidence 4: Network & Geolocation Velocity -->
+            <div class="evidence-card">
+              <div class="card-title">04. NETWORK, PROXY & GEOLOCATION HOP</div>
+              <div class="evidence-grid-2">
+                <div class="ev-item">
+                  <span class="ev-label">INGRESS IP & LOCATION</span>
+                  <span class="ev-val mono" id="evNetIp">185.220.101.44 (Amsterdam)</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">ROUTING ASN</span>
+                  <span class="ev-val mono" id="evNetAsn">AS9009 Tor Relay</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">ANONYMIZER / PROXY</span>
+                  <span class="ev-val" id="evNetProxy">Tor Exit Node</span>
+                </div>
+                <div class="ev-item">
+                  <span class="ev-label">GEOGRAPHIC VELOCITY</span>
+                  <span class="ev-val text-danger" id="evNetTravel">8,790 km/h (Impossible)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evidence 5: Beneficiary & Counterparty Watchlist -->
+            <div class="evidence-card" style="grid-column: 1 / -1;">
+              <div class="card-title">05. BENEFICIARY COUNTERPARTY INTELLIGENCE</div>
+              <div id="evidenceBeneficiaryCard">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Evidence 6: Triggered Rules & Conflict Resolution -->
+            <div class="rules-evidence-box">
+              <div class="card-title">06. TRIGGERED POLICY RULES & CONFLICT DETECTOR</div>
+              <div id="evidenceRulesList">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- Right Dock: Decision Panel (320px) -->
+        <aside class="split-decision-dock" aria-label="High-Stakes Decision Dock">
+          <div class="decision-dock-title">Analyst Decision Panel</div>
+
+          <!-- Score Card -->
+          <div class="score-dock-card">
+            <span class="score-dock-lbl">RECOMMENDED ACTION</span>
+            <div class="score-dock-val" id="decisionScoreDisplay">94 / 100</div>
+            <div class="score-dock-recommendation text-danger" id="decisionRecommendation">IMMEDIATE ACCOUNT FREEZE</div>
+          </div>
+
+          <!-- Decision Action Buttons -->
+          <div class="decision-actions-stack">
+            <button class="btn-decision btn-freeze" id="btnActionFreeze">
+              <span>🚫 BLOCK & FREEZE</span>
+              <span class="hotkey">B</span>
+            </button>
+            <button class="btn-decision btn-approve" id="btnActionApprove">
+              <span>🛡️ APPROVE & ALLOW</span>
+              <span class="hotkey">A</span>
+            </button>
+            <button class="btn-decision btn-stepup" id="btnActionStepUp">
+              <span>📱 REQUEST STEP-UP 2FA</span>
+              <span class="hotkey">V</span>
+            </button>
+            <button class="btn-decision btn-escalate" id="btnActionEscalate">
+              <span>↗ ESCALATE TO SUPERVISOR</span>
+            </button>
+            <button class="btn-decision btn-false-pos" id="btnActionFalsePositive">
+              <span>✓ MARK FALSE POSITIVE</span>
+            </button>
+          </div>
+
+          <!-- Analyst Rationale & Note Box -->
+          <div class="rationale-dock-box">
+            <span class="rationale-lbl">Mandatory Rationale Note:</span>
+            <div class="tag-buttons-cloud">
+              <button class="tag-btn" data-tag="Account Takeover (ATO)">ATO</button>
+              <button class="tag-btn" data-tag="Carding Botnet">Carding Bot</button>
+              <button class="tag-btn" data-tag="Impossible Travel">Impossible Travel</button>
+              <button class="tag-btn" data-tag="Friendly Fraud">Friendly Fraud</button>
+              <button class="tag-btn" data-tag="Legitimate Travel">Legit Travel</button>
+            </div>
+            <textarea class="analyst-note-textarea" id="analystNoteInput" placeholder="Document investigative rationale before committing high-stakes decision..."></textarea>
+          </div>
+
+          <!-- Audit Compliance Stamp -->
+          <div class="decision-audit-stamp">
+            <strong>Compliance Note:</strong> All actions logged in immutable audit ledger per Basel III & AML guidelines with cryptographic session hash.
+          </div>
+        </aside>
+
       </div>
     </section>
 
-    <!-- VIEW 4: AI AUTONOMOUS POLICIES -->
-    <section class="app-view" id="view-policies">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div class="panel-title-wrap">
-            <span class="panel-indicator" style="background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple);"></span>
-            <h2 class="panel-title">AUTONOMOUS DEFENSE POLICIES & AI GUARDRAILS</h2>
-          </div>
-          <div class="panel-subtitle">SELF-HEALING ZERO-TRUST LOGIC GRAPHS</div>
-        </div>
-        <div class="panel-body">
-          <div class="policies-list" id="policiesList">
-            <!-- Dynamically populated via js/app.js -->
-          </div>
-        </div>
+    <!-- VIEW 2: CASES -->
+    <section class="console-view secondary-view-container" id="view-cases">
+      <div class="view-header-row">
+        <h2 class="view-heading">Investigation Cases & SLA Management</h2>
+      </div>
+      <div class="data-table-wrapper">
+        <table class="forensic-table">
+          <thead>
+            <tr>
+              <th>CASE ID</th>
+              <th>PRIORITY</th>
+              <th>PRIMARY ENTITY</th>
+              <th>ASSIGNED ANALYST</th>
+              <th>ALERTS ATTACHED</th>
+              <th>SLA REMAINING</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono-cell">CASE-4401</td>
+              <td><span class="badge-status badge-danger">CRITICAL (P0)</span></td>
+              <td class="bold">Eleanor Vance (CUST-90412)</td>
+              <td>Đỗ Anh Nghĩa</td>
+              <td class="mono-cell">1 Alert ($8,450.00 Wire)</td>
+              <td class="mono-cell text-danger">08m 14s</td>
+              <td><span class="badge-status badge-danger">UNDER_REVIEW</span></td>
+            </tr>
+            <tr>
+              <td class="mono-cell">CASE-4402</td>
+              <td><span class="badge-status badge-conflict">RULE_CONFLICT (P1)</span></td>
+              <td class="bold">Marcus Aurelius Thorne (VIP)</td>
+              <td>Đỗ Anh Nghĩa</td>
+              <td class="mono-cell">1 Alert (€4,200.00 POS)</td>
+              <td class="mono-cell">32m 00s</td>
+              <td><span class="badge-status badge-conflict">CONFLICT_TRIAGE</span></td>
+            </tr>
+            <tr>
+              <td class="mono-cell">CASE-4403</td>
+              <td><span class="badge-status badge-frozen">AUTOMATED (P0)</span></td>
+              <td class="bold">Devon Bradley (Carding Swarm)</td>
+              <td>Sentry Autopilot</td>
+              <td class="mono-cell">48 Micro-transactions</td>
+              <td class="mono-cell text-clean">COMPLETED</td>
+              <td><span class="badge-status badge-frozen">FROZEN</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <!-- VIEW 5: AUDIT & FORENSICS -->
-    <section class="app-view" id="view-forensics">
-      <div class="panel-card">
-        <div class="panel-header">
-          <div class="panel-title-wrap">
-            <span class="panel-indicator"></span>
-            <h2 class="panel-title">IMMUTABLE CRYPTOGRAPHIC AUDIT LEDGER</h2>
-          </div>
-          <div class="panel-subtitle">SHA-256 ZERO-KNOWLEDGE PROOF PROVENANCE</div>
-        </div>
-        <div class="panel-body">
-          <div class="table-responsive">
-            <table class="tactical-table">
-              <thead>
-                <tr>
-                  <th>AUDIT ID</th>
-                  <th>TIMESTAMP (UTC)</th>
-                  <th>EVENT TYPE</th>
-                  <th>ACTOR / DAEMON</th>
-                  <th>TARGET ENTITY</th>
-                  <th>ZKP MERKLE PROOF</th>
-                  <th>VERDICT</th>
-                </tr>
-              </thead>
-              <tbody id="forensicsTableBody">
-                <!-- Dynamically populated via js/app.js -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <!-- VIEW 3: RULES ENGINE -->
+    <section class="console-view secondary-view-container" id="view-rules">
+      <div class="view-header-row">
+        <h2 class="view-heading">Rules Engine & Velocity Limits</h2>
+      </div>
+      <div class="rules-inventory-grid" id="rulesListContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: CUSTOMERS -->
+    <section class="console-view secondary-view-container" id="view-customers">
+      <div class="view-header-row">
+        <h2 class="view-heading">Customer 360° Risk Directory</h2>
+      </div>
+      <div class="data-table-wrapper">
+        <table class="forensic-table">
+          <thead>
+            <tr>
+              <th>CUSTOMER ID</th>
+              <th>FULL NAME</th>
+              <th>EMAIL</th>
+              <th>TRUST TIER</th>
+              <th>ACCOUNT AGE</th>
+              <th>LIFETIME SPEND</th>
+              <th>DISPUTE RISK</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="customersTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 5: ANALYTICS -->
+    <section class="console-view secondary-view-container" id="view-analytics">
+      <div class="view-header-row">
+        <h2 class="view-heading">Risk Operations Analytics & Performance</h2>
+      </div>
+      <div class="analytics-cards-grid" id="analyticsMetrics">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- VIEW 6: AUDIT LOG -->
+    <section class="console-view secondary-view-container" id="view-audit">
+      <div class="view-header-row">
+        <h2 class="view-heading">Immutable Forensic Audit Ledger</h2>
+      </div>
+      <div class="data-table-wrapper">
+        <table class="forensic-table">
+          <thead>
+            <tr>
+              <th>AUDIT ID</th>
+              <th>TIMESTAMP (UTC)</th>
+              <th>ACTOR / ROLE</th>
+              <th>TARGET ENTITY</th>
+              <th>ACTION TAKEN</th>
+              <th>INVESTIGATIVE RATIONALE</th>
+              <th>OUTCOME</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
       </div>
     </section>
 
   </main>
 
-  <!-- Incident Deep-Dive Slide-Over Drawer -->
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="incident-drawer" id="incidentDrawer" aria-label="Incident Deep-Dive Inspector">
-    <div class="drawer-header">
-      <div class="drawer-header-left">
-        <span class="badge-severity" id="drawerSeverity">CRITICAL</span>
-        <span class="mono accent-cyan" id="drawerIncidentId">INC-9402</span>
-      </div>
-      <button class="btn-close-drawer" id="btnCloseDrawer" title="Close Drawer (Esc)">&times;</button>
-    </div>
-
-    <div class="drawer-body">
-      <h2 class="drawer-title" id="drawerTitle">Incident Title</h2>
-
-      <div class="drawer-section">
-        <span class="drawer-section-title">ORIGIN & VECTOR TELEMETRY</span>
-        <div class="drawer-meta-grid">
-          <div>
-            <span class="meta-label">TARGET POD:</span>
-            <div id="drawerTarget" class="mono">target</div>
-          </div>
-          <div>
-            <span class="meta-label">VECTOR:</span>
-            <div id="drawerVector" class="mono">vector</div>
-          </div>
-          <div style="grid-column: 1 / -1;">
-            <span class="meta-label">SOURCE IP & NETWORK:</span>
-            <div id="drawerSource" class="mono">source</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="drawer-section">
-        <span class="drawer-section-title">SENTINEL AI ROOT CAUSE & TRIAGE</span>
-        <div class="telemetry-stat-card" style="background: rgba(0, 240, 255, 0.04); border-color: rgba(0, 240, 255, 0.2);">
-          <div id="drawerAiRemediation" style="font-size: 0.82rem; color: #E2E8F0; line-height: 1.45;">AI Remediation</div>
-        </div>
-      </div>
-
-      <div class="drawer-section">
-        <span class="drawer-section-title">DISTRIBUTED TRACE WATERFALL</span>
-        <div class="trace-waterfall-box" id="drawerTraceWaterfall">
-          <!-- Populated dynamically via js/app.js -->
-        </div>
-      </div>
-
-      <div class="drawer-section">
-        <span class="drawer-section-title">RAW PAYLOAD DISSECTOR (HEX/JSON)</span>
-        <pre class="payload-box" id="drawerRawPayload">// Payload stream</pre>
-      </div>
-    </div>
-
-    <div class="drawer-footer">
-      <button class="btn-drawer-quarantine" id="btnDrawerQuarantine">EXECUTE ISOLATION & DUMP PCAP</button>
-    </div>
-  </aside>
-
   <!-- Scripts -->
   <script src="js/data.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/radar.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

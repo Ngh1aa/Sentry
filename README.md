@@ -1,82 +1,104 @@
-Fintech & Banking / Fraud Operations
-Product
-SENTRY — Fraud & Risk Operations Console
-Portfolio role
-Đây phải là flagship fintech case.
-Chứng minh:
-internal tooling;
-complex data;
-risk;
-investigation;
-evidence hierarchy;
-high-stakes decision UX.
-Benchmark research
-Nghiên cứu:
-Stripe Radar;
-Adyen risk management;
-Sift;
-Sardine;
-Alloy;
-Persona.
-Không copy visual.
-Primary user
-Fraud analyst.
-Secondary
-Risk manager / supervisor.
-Core question
-Analyst cần đủ evidence để quyết định “block hay allow” mà không phải mở 5 systems.
-IA
-Risk Overview
-├── Alert Queue
-│ └── Alert Detail
-│ ├── Transaction
-│ ├── Customer
-│ ├── Device
-│ ├── Timeline
-│ ├── Signals
-│ └── Decision
-├── Cases
-├── Rules
-├── Customers
-├── Analytics
-└── Audit Log
+# SENTRY — Fraud & Risk Operations Console
 
-Hero screen
-Split investigation workspace:
-Alert queue | Evidence workspace | Decision panel
+> **Flagship Fintech Case Study**: An institutional internal tooling console designed for high-stakes fraud investigation, evidence correlation, and rapid decisioning without context-switching across disparate banking systems.
 
-Evidence
-amount;
-merchant;
-device fingerprint;
-IP/location;
-velocity;
-historical behavior;
-new beneficiary;
-account age;
-previous disputes;
-model score;
-triggered rule.
-Required decision flow
-Alert
-→ inspect evidence
-→ compare history
-→ request verification OR freeze
-→ add analyst note
-→ resolve case
+![Sentry Hero Split Investigation Workspace](assets/preview.png)
 
-Visual direction
-forensic / dense / controlled
-Không cyberpunk.
-Visual signature:
-Risk Spectrum + Evidence Trace
-Important states
-high risk;
-medium;
-low;
-false positive;
-needs verification;
-frozen;
-escalated;
-resolved;
-rule conflict.
+---
+
+## 01. The Problem & Product Core
+
+In high-volume banking and fintech environments, fraud analysts are tasked with making high-stakes, irreversible decisions: **block or allow**. 
+
+Traditional risk workflows force analysts to swivel between 4–6 siloed interfaces—a payment gateway, identity KYC vault, device telemetry portal, proxy detection database, and internal core banking ledger. This fragmented context inflates **Mean Time to Decide (MTTD)**, causes customer friction through false positives, and enables sophisticated fraudsters (Account Takeover, carding bots, synthetic identities) to slip through.
+
+**SENTRY** solves this through a **Split Investigation Workspace**:
+```
+[ Alert Queue (Left Rail) | Forensic Evidence Workspace (Center) | High-Stakes Decision Dock (Right) ]
+```
+Every piece of behavioral, network, device, and historical counterparty evidence is unified on a single screen, allowing analysts to triage and resolve an alert in seconds.
+
+---
+
+## 02. Information Architecture (IA)
+
+```
+SENTRY Console
+├── Risk Overview / Alert Queue (Hero Split Workspace)
+│   └── Alert Detail
+│       ├── Transaction & Velocity Telemetry
+│       ├── Customer Profile & Trust Tier
+│       ├── Device Fingerprint & Canvas Authenticity
+│       ├── Network, Geolocation Hop & Anonymizers
+│       ├── Beneficiary Counterparty & Watchlist
+│       ├── Triggered Rules & Rule Conflict Detector
+│       └── Decision Dock
+├── Cases (Case Assignment, SLA Countdown Timers)
+├── Rules Engine (Velocity Limits, Rule Conflict Precedence)
+├── Customers (360° Identity Risk Directory)
+├── Analytics (Losses Prevented, False Positive Rate, MTTD)
+└── Audit Log (Immutable Forensic Decision Ledger)
+```
+
+---
+
+## 03. Visual Direction & Signatures
+
+- **Visual Direction**: `forensic / dense / controlled` — Clean institutional fintech palette (clinical light default with terminal slate dark mode for night shift operations). Zero cyberpunk, zero decorative sci-fi tropes.
+- **Visual Signature 1 — Risk Spectrum**:
+  - A segmented composite risk bar breaking down exact categorical score contributions (Device Spoofing, Impossible Travel, Velocity Deviation, High-Risk Beneficiary).
+- **Visual Signature 2 — Evidence Trace**:
+  - A vertical chronological delta showing normal account baseline vs recent anomalous events leading to the flagged transaction.
+- **State Handling**:
+  - `HIGH_RISK` (Critical composite score > 75, immediate freeze recommendation).
+  - `RULE_CONFLICT` (System conflict detected, e.g. Rule 301 Foreign Luxury Hold vs Rule 012 VIP Exemption, requiring manual analyst precedence).
+  - `NEEDS_VERIFICATION` (Biometric / Step-up 2FA out-of-band challenge).
+  - `FROZEN` (Air-gapped and locked outbound account rails).
+  - `RESOLVED / ALLOWED` (Clean baseline, false positive cleared).
+
+---
+
+## 04. Required Decision Flow
+
+1. **Alert Selection**: Analyst selects pending item from the prioritized Left Queue.
+2. **Evidence Inspection**: Center workspace correlates transaction velocity, device canvas hash, proxy ASN, and beneficiary FATF jurisdiction.
+3. **History Comparison**: Evidence Trace compares current event with 3-month baseline behavior.
+4. **Action Execution**: Analyst selects tactile action (`Block & Freeze`, `Approve & Allow`, `Step-Up 2FA`, `Escalate`, `False Positive`).
+5. **Mandatory Rationale**: Analyst applies categorical tags (`[ATO]`, `[Carding Bot]`, `[Impossible Travel]`) and notes justification for compliance.
+6. **Resolution & Auto-Advance**: Action is committed to the immutable Audit Log, counters update, and workspace smoothly auto-advances to the next priority alert.
+
+---
+
+## 05. Benchmark References
+
+- **Stripe Radar**: Machine learning risk scoring, rule velocity checks, and frictionless review queues.
+- **Adyen Risk Management**: Custom scoring lists and cross-merchant behavioral intelligence.
+- **Sift & Sardine**: Device fingerprinting, proxy detection, and instant bank wire dispute mitigation.
+- **Alloy & Persona**: 360° customer identity graphs and KYC step-up workflows.
+
+---
+
+## 06. Tech Stack & Local Setup
+
+Built with framework-free modern web standards:
+- **Semantic HTML5**: Dense, accessible data structures.
+- **Custom CSS3 Design Tokens**: Clinical institutional light and dark themes, hairline surgical borders, tabular monospace alignment.
+- **Vanilla ES6+ JavaScript**: Dynamic queue filtering, risk spectrum calculations, rule conflict resolution, and local state management.
+
+```bash
+# Clone the repository
+git clone https://github.com/Ngh1aa/Sentry.git
+cd Sentry
+
+# Serve locally
+python -m http.server 4199
+```
+
+Open `http://localhost:4199` in your browser.
+
+---
+
+## 07. Author & Portfolio
+
+Designed & engineered by **Đỗ Anh Nghĩa** as a flagship Fintech UI/UX case study.
+All rights reserved © 2026.
