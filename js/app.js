@@ -19,7 +19,6 @@ class SentryFraudConsole {
     this.bindFilters();
     this.bindSearch();
     this.bindDecisionPanel();
-    this.bindThemeToggle();
     this.renderAlertQueue();
     this.renderActiveAlert();
     this.renderRulesEngine();
@@ -123,20 +122,6 @@ class SentryFraudConsole {
     }
     if (btnFalsePositive) {
       btnFalsePositive.addEventListener('click', () => this.executeDecision('FALSE_POSITIVE', 'Marked False Positive & Sent to Model Tuning Loop'));
-    }
-  }
-
-  bindThemeToggle() {
-    const toggleBtn = document.getElementById('btnThemeToggle');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        const isDark = document.body.classList.toggle('dark-theme');
-        const sunIcon = window.SentryIcons ? window.SentryIcons.sun : '';
-        const moonIcon = window.SentryIcons ? window.SentryIcons.moon : '';
-        toggleBtn.innerHTML = isDark 
-          ? `${moonIcon} Dark Terminal` 
-          : `${sunIcon} Clinical Light`;
-      });
     }
   }
 
