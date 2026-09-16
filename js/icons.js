@@ -104,3 +104,21 @@ window.SentryIcons = SentryIcons;
   const initialView = viewFromLocation();
   if (titles[initialView]) document.title = titles[initialView];
 })();
+
+// Load the portfolio-grade secondary operations workspaces without duplicating
+// the shell markup in every GitHub Pages route wrapper.
+(() => {
+  if (document.querySelector('link[data-sentry-secondary]')) return;
+
+  const styles = document.createElement('link');
+  styles.rel = 'stylesheet';
+  styles.href = 'css/secondary.css';
+  styles.dataset.sentrySecondary = 'styles';
+  document.head.appendChild(styles);
+
+  const script = document.createElement('script');
+  script.src = 'js/secondary.js';
+  script.defer = true;
+  script.dataset.sentrySecondary = 'script';
+  document.head.appendChild(script);
+})();
