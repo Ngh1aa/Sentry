@@ -1,0 +1,186 @@
+/* SENTRY — Observability Motion Layer
+   Direction: observant / spatial / controlled
+   Signature: evidence acquisition + decision acknowledgement. */
+
+:root{
+  --sentry-motion-micro:110ms;
+  --sentry-motion-fast:170ms;
+  --sentry-motion-base:260ms;
+  --sentry-motion-evidence:380ms;
+  --sentry-motion-ease:cubic-bezier(.2,.72,.25,1);
+  --sentry-motion-snap:cubic-bezier(.16,1,.3,1);
+}
+
+/* View changes feel like a workspace acquiring a new evidence context. */
+.console-view.active{
+  animation:sentry-view-acquire var(--sentry-motion-evidence) var(--sentry-motion-snap) both;
+}
+
+@keyframes sentry-view-acquire{
+  from{opacity:.55;transform:translate3d(0,6px,0)}
+  to{opacity:1;transform:none}
+}
+
+/* Evidence modules appear as data surfaces coming online, not generic cards. */
+.console-view.active .diagram-card,
+.console-view.active .score-dock-card,
+.console-view.active .rationale-dock-box,
+.console-view.active .decision-actions-stack,
+.console-view.active .data-table-wrapper,
+.console-view.active .rules-inventory-grid > *,
+.console-view.active .analytics-cards-grid > *{
+  animation:sentry-evidence-online var(--sentry-motion-base) var(--sentry-motion-snap) both;
+}
+
+.console-view.active .diagram-card:nth-child(2),
+.console-view.active .decision-actions-stack{animation-delay:35ms}
+.console-view.active .diagram-card:nth-child(3),
+.console-view.active .rationale-dock-box{animation-delay:70ms}
+
+@keyframes sentry-evidence-online{
+  from{opacity:.58;transform:translate3d(5px,0,0)}
+  to{opacity:1;transform:none}
+}
+
+/* Alert queue items acknowledge insertion/filtering. */
+.queue-alert-card{
+  animation:sentry-queue-in var(--sentry-motion-base) var(--sentry-motion-snap) both;
+  transition:
+    transform var(--sentry-motion-fast) var(--sentry-motion-ease),
+    border-color var(--sentry-motion-fast) ease,
+    background-color var(--sentry-motion-fast) ease,
+    box-shadow var(--sentry-motion-fast) ease;
+}
+
+.alert-queue-list .queue-alert-card:nth-child(2){animation-delay:26ms}
+.alert-queue-list .queue-alert-card:nth-child(3){animation-delay:52ms}
+.alert-queue-list .queue-alert-card:nth-child(4){animation-delay:78ms}
+.alert-queue-list .queue-alert-card:nth-child(n+5){animation-delay:96ms}
+
+@keyframes sentry-queue-in{
+  from{opacity:.45;transform:translate3d(-7px,0,0)}
+  to{opacity:1;transform:none}
+}
+
+@media (hover:hover) and (pointer:fine){
+  .queue-alert-card:hover{transform:translate3d(2px,0,0)}
+  .queue-alert-card.active:hover{transform:none}
+}
+
+/* Active queue card gets a short acquisition edge instead of a pulse loop. */
+.queue-alert-card.active{
+  position:relative;
+}
+.queue-alert-card.active::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:currentColor;
+  animation:sentry-acquire-edge var(--sentry-motion-base) var(--sentry-motion-snap) both;
+}
+@keyframes sentry-acquire-edge{
+  from{transform:scaleY(.15);opacity:.25}
+  to{transform:scaleY(1);opacity:1}
+}
+
+/* Diagram cards respond through evidence focus, not elevation-heavy consumer UI. */
+.diagram-card,
+.dissect-box,
+.score-dock-card,
+.rationale-dock-box{
+  transition:
+    border-color var(--sentry-motion-fast) ease,
+    background-color var(--sentry-motion-fast) ease,
+    box-shadow var(--sentry-motion-base) var(--sentry-motion-ease);
+}
+
+@media (hover:hover) and (pointer:fine){
+  .diagram-card:hover{
+    box-shadow:0 0 0 1px rgba(108,92,231,.12), 0 10px 28px rgba(20,20,35,.08);
+  }
+}
+
+/* Decision actions are deliberately fast and tactile. */
+.btn-decision,
+.filter-btn,
+.nav-tab,
+.tag-btn{
+  transition:
+    transform var(--sentry-motion-fast) var(--sentry-motion-snap),
+    background-color var(--sentry-motion-fast) ease,
+    border-color var(--sentry-motion-fast) ease,
+    color var(--sentry-motion-fast) ease,
+    box-shadow var(--sentry-motion-fast) ease;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .btn-decision:hover,.filter-btn:hover,.nav-tab:hover,.tag-btn:hover{transform:translate3d(0,-1px,0)}
+}
+.btn-decision:active,.filter-btn:active,.nav-tab:active,.tag-btn:active{
+  transform:translate3d(0,1px,0) scale(.995);
+  transition-duration:var(--sentry-motion-micro);
+}
+
+.nav-tab.active{
+  position:relative;
+}
+.nav-tab.active::after{
+  content:"";
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:0;
+  height:2px;
+  background:currentColor;
+  transform-origin:left center;
+  animation:sentry-tab-line var(--sentry-motion-base) var(--sentry-motion-snap) both;
+}
+@keyframes sentry-tab-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* Status indicators breathe only when they represent live system state. */
+.pulse-dot,
+.shift-status-dot{
+  transform-origin:center;
+  animation:sentry-live-status 2.4s ease-in-out infinite;
+}
+@keyframes sentry-live-status{
+  0%,100%{opacity:.72;box-shadow:0 0 0 0 currentColor}
+  50%{opacity:1;box-shadow:0 0 0 4px transparent}
+}
+
+/* Evidence values acknowledge data refresh without changing layout. */
+.evidence-header-strip,
+.donut-container,
+.spline-chart-container,
+.virtual-card-wrapper,
+#geoHopDiagramContainer,
+#entityGraphContainer,
+.timeline-list{
+  transition:opacity var(--sentry-motion-fast) ease,filter var(--sentry-motion-fast) ease;
+}
+
+@media (max-width:768px){
+  .console-view.active .diagram-card,
+  .console-view.active .score-dock-card,
+  .console-view.active .rationale-dock-box,
+  .queue-alert-card{animation-duration:220ms}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .console-view.active,
+  .console-view.active *,
+  .queue-alert-card,
+  .queue-alert-card::before,
+  .nav-tab::after,
+  .pulse-dot,
+  .shift-status-dot,
+  .btn-decision,
+  .filter-btn,
+  .nav-tab,
+  .tag-btn{
+    animation:none!important;
+    transition-duration:.01ms!important;
+    transform:none!important;
+  }
+}
