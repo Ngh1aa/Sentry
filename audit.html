@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTRY — Audit Log</title>
+  <meta name="description" content="SENTRY immutable forensic audit ledger view.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main style="padding:24px;font-family:Inter,sans-serif">Loading SENTRY Audit Log…</main>
+  <script>
+    (async () => {
+      const targetView = 'audit';
+      const response = await fetch('index.html', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Failed to load SENTRY shell: ${response.status}`);
+      const html = await response.text();
+      const shell = new DOMParser().parseFromString(html, 'text/html');
+      shell.querySelectorAll('script').forEach(script => script.remove());
+      document.body.innerHTML = shell.body.innerHTML;
+      const load = src => new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+      });
+      for (const src of ['js/icons.js', 'js/data.js', 'js/visuals.js', 'js/app.js']) await load(src);
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+      window.sentryConsole?.switchView(targetView);
+      document.documentElement.dataset.sentryReady = targetView;
+    })().catch(error => {
+      console.error(error);
+      document.body.innerHTML = '<main style="padding:24px;font-family:Inter,sans-serif"><h1>Unable to load SENTRY Audit Log</h1><p>Please reload the page.</p></main>';
+    });
+  </script>
+</body>
+</html>
