@@ -26,3 +26,81 @@ const SentryIcons = {
 };
 
 window.SentryIcons = SentryIcons;
+
+// SENTRY // URL routing bridge for tab navigation on GitHub Pages.
+// Keep the fast in-page tab switch while giving every view a shareable URL,
+// refresh-safe route, and working browser Back/Forward navigation.
+(() => {
+  if (window.__sentryUrlRouterBound) return;
+  window.__sentryUrlRouterBound = true;
+
+  const routes = {
+    queue: './',
+    cases: 'cases.html',
+    rules: 'rules.html',
+    customers: 'customers.html',
+    analytics: 'analytics.html',
+    audit: 'audit.html'
+  };
+
+  const titles = {
+    queue: 'SENTRY — Fraud & Risk Operations Console',
+    cases: 'SENTRY — Cases',
+    rules: 'SENTRY — Rules Engine',
+    customers: 'SENTRY — Customers',
+    analytics: 'SENTRY — Analytics',
+    audit: 'SENTRY — Audit Log'
+  };
+
+  const viewFromLocation = () => {
+    const file = window.location.pathname.split('/').pop().toLowerCase();
+    if (!file || file === 'index.html') return 'queue';
+    const match = Object.entries(routes).find(([, route]) => route === file);
+    return match ? match[0] : 'queue';
+  };
+
+  const updateUrl = (viewId) => {
+    const route = routes[viewId];
+    if (!route) return;
+
+    const target = new URL(route, window.location.href);
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const next = `${target.pathname}${target.search}${target.hash}`;
+
+    if (current !== next) {
+      window.history.pushState({ sentryView: viewId }, '', next);
+    }
+
+    if (titles[viewId]) document.title = titles[viewId];
+  };
+
+  document.addEventListener('click', (event) => {
+    const tab = event.target.closest('.nav-tab[data-view]');
+    if (!tab) return;
+    updateUrl(tab.getAttribute('data-view'));
+  }, true);
+
+  window.addEventListener('keydown', (event) => {
+    if (event.target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+    const keyboardViews = {
+      '1': 'queue',
+      '2': 'cases',
+      '3': 'rules',
+      '4': 'customers',
+      '5': 'analytics',
+      '6': 'audit'
+    };
+    if (keyboardViews[event.key]) updateUrl(keyboardViews[event.key]);
+  }, true);
+
+  window.addEventListener('popstate', () => {
+    const viewId = viewFromLocation();
+    if (titles[viewId]) document.title = titles[viewId];
+    if (window.sentryConsole && window.sentryConsole.currentView !== viewId) {
+      window.sentryConsole.switchView(viewId);
+    }
+  });
+
+  const initialView = viewFromLocation();
+  if (titles[initialView]) document.title = titles[initialView];
+})();
