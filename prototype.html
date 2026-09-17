@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentry prototype guide with live entry points, core scenarios and evidence boundaries.">
+  <title>SENTRY — Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/documentation.css">
+</head>
+<body class="docs-page">
+<div class="docs-shell">
+  <aside class="docs-sidebar" aria-label="Sentry documentation navigation"><div class="docs-brand"><div class="docs-brand-row"><strong>SENTRY</strong><span>DESIGN DOCS</span></div><p>Fraud investigation, evidence correlation, decision safety and auditability.</p></div><nav class="docs-nav"><p class="docs-nav-label">Documentation</p><a href="design-system.html"><span>Design System</span><span>01</span></a><a href="component-states.html"><span>Component States</span><span>02</span></a><a href="sitemap.html"><span>Sitemap</span><span>03</span></a><a href="user-flow.html"><span>User Flow</span><span>04</span></a><a class="active" aria-current="page" href="prototype.html"><span>Prototype</span><span>05</span></a></nav><div class="docs-sidebar-footer"><a href="index.html">← Open investigation console</a><p>Prototype data · simulated risk operations</p></div></aside>
+  <main class="docs-main"><header class="docs-topbar"><div class="breadcrumb"><span>Sentry</span><span>/</span><strong>Prototype</strong></div><span class="docs-index">05 / 05</span></header><div class="docs-content">
+    <section class="docs-hero"><div><p class="eyebrow">Live prototype guide</p><h1>Review the system through real decision paths.</h1></div><div class="docs-hero-copy"><p>This screen is the recruiter and critique entry point into Sentry. Start with the Alert Queue to experience the split investigation workspace, then move through cases, rules, customers, analytics and the immutable audit surface.</p><div class="docs-meta"><div><span>Prototype</span><strong>HTML / CSS / JS</strong></div><div><span>Primary flow</span><strong>Investigate → decide</strong></div><div><span>Data</span><strong>Simulated scenario</strong></div></div></div></section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">05.01</span><div><h2>Live entry points</h2><p>Each route demonstrates a different part of the risk-operations system.</p></div></div>
+      <div class="docs-grid">
+        <div class="doc-panel span-4 route-card"><p class="panel-kicker">Primary</p><h3>Alert Queue</h3><p>Split investigation workspace with queue, forensic evidence, risk gauge and persistent Decision Dock.</p><a href="index.html">Open Alert Queue →</a></div>
+        <div class="doc-panel span-4 route-card"><p class="panel-kicker">Operations</p><h3>Cases</h3><p>Review ownership, assignment and escalated investigations without losing case history.</p><a href="cases.html">Open Cases →</a></div>
+        <div class="doc-panel span-4 route-card"><p class="panel-kicker">Policy</p><h3>Rules Engine</h3><p>Inspect rule inventory and the logic that supplies risk context to analyst review.</p><a href="rules.html">Open Rules Engine →</a></div>
+        <div class="doc-panel span-4 route-card"><p class="panel-kicker">Identity</p><h3>Customers</h3><p>Inspect reusable customer and entity context outside a single alert.</p><a href="customers.html">Open Customers →</a></div>
+        <div class="doc-panel span-4 route-card"><p class="panel-kicker">Telemetry</p><h3>Analytics</h3><p>Explore simulated operational reporting and queue-health patterns.</p><a href="analytics.html">Open Analytics →</a></div>
+        <div class="doc-panel span-4 route-card"><p class="panel-kicker">Traceability</p><h3>Audit Log</h3><p>Review the record of analyst outcomes, rationale and operational history.</p><a href="audit.html">Open Audit Log →</a></div>
+      </div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">05.02</span><div><h2>Recommended review path</h2><p>A five-minute walkthrough should reveal both interaction craft and product reasoning.</p></div></div>
+      <div class="flow"><div class="flow-node"><strong>1 · Queue</strong><p>Choose the highest-priority alert and note how risk state is encoded.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>2 · Evidence</strong><p>Read risk gauge, geo hop, device mismatch, velocity and rule context.</p></div><div class="flow-arrow">→</div><div class="flow-node decision"><strong>3 · Decision</strong><p>Compare block, allow, verification, escalation and false-positive actions.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>4 · Rationale</strong><p>Capture categorical tags plus enough narrative for independent review.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>5 · Trace</strong><p>Confirm the decision becomes an auditable record before auto-advance.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">05.03</span><div><h2>Core scenarios to inspect</h2><p>The prototype is strongest when evaluated through decision branches rather than passive dashboard browsing.</p></div></div>
+      <div class="branch-list">
+        <div class="branch"><span class="tag">ATO</span><h3>Correlated high-risk alert</h3><p>Impossible travel + device mismatch + unusual beneficiary. Review how independent signals combine before a freeze decision.</p></div>
+        <div class="branch"><span class="tag">CONFLICT</span><h3>Rule precedence</h3><p>Two automation policies disagree. Inspect how Sentry keeps both conclusions visible and asks for human precedence.</p></div>
+        <div class="branch"><span class="tag">VERIFY</span><h3>Step-up challenge</h3><p>Use verification when evidence is ambiguous, then inspect success, failure and expiry recovery states.</p></div>
+        <div class="branch"><span class="tag">FALSE POSITIVE</span><h3>Clear with rationale</h3><p>Confirm that allowing a legitimate transaction still generates a traceable disposition.</p></div>
+        <div class="branch"><span class="tag">ESCALATE</span><h3>Specialist handoff</h3><p>Preserve evidence, notes and ownership when a decision requires a more privileged reviewer.</p></div>
+        <div class="branch"><span class="tag">RECOVERY</span><h3>Audit save failure</h3><p>Expected design behavior: preserve rationale, prevent auto-advance and offer a safe retry instead of silently losing the decision.</p></div>
+      </div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">05.04</span><div><h2>Prototype fidelity</h2><p>The implementation is intentionally strong in interaction and visual system fidelity while remaining a portfolio simulation.</p></div></div>
+      <table class="token-table"><thead><tr><th>Layer</th><th>Current fidelity</th><th>Boundary</th></tr></thead><tbody>
+        <tr><td>Visual system</td><td>Implemented</td><td>Clinical light theme, risk states, diagrams, dense split workspace</td></tr>
+        <tr><td>Navigation</td><td>Implemented</td><td>Queue, cases, rules, customers, analytics, audit routes</td></tr>
+        <tr><td>Investigation interactions</td><td>Implemented prototype</td><td>Client-side state; no live risk engine</td></tr>
+        <tr><td>Risk evidence</td><td>Simulated</td><td>Scenario data, not connected to banking/KYC/device providers</td></tr>
+        <tr><td>Operational metrics</td><td>Scenario telemetry</td><td>MTTD, FPR and intercept counts are not measured production outcomes</td></tr>
+        <tr><td>Audit behavior</td><td>Prototype behavior</td><td>No regulated immutable storage backend</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">05.05</span><div><h2>Critique checklist</h2><p>Use these questions to judge whether the prototype actually supports a high-stakes workflow.</p></div></div>
+      <div class="docs-grid"><div class="doc-panel span-4"><p class="panel-kicker">Comprehension</p><h3>Can risk be explained?</h3><p>Can an analyst state why the alert is risky using more than the composite score?</p></div><div class="doc-panel span-4"><p class="panel-kicker">Control</p><h3>Are actions distinguishable?</h3><p>Can users tell the difference between an irreversible freeze, a verification request and escalation?</p></div><div class="doc-panel span-4"><p class="panel-kicker">Trace</p><h3>Can a reviewer reconstruct it?</h3><p>Does the final state retain actor, evidence context, rationale and rule conflict history?</p></div><div class="doc-panel span-4"><p class="panel-kicker">Recovery</p><h3>Does failure preserve work?</h3><p>Would a network or audit error keep the analyst in context without duplicate actions?</p></div><div class="doc-panel span-4"><p class="panel-kicker">Accessibility</p><h3>Is meaning independent of color?</h3><p>Can status, focus and critical actions be understood through text and structure?</p></div><div class="doc-panel span-4"><p class="panel-kicker">Density</p><h3>Is the workspace scan-friendly?</h3><p>Does the three-zone model make complex evidence easier to compare rather than merely fitting more on screen?</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">05.06</span><div><h2>Next evidence to collect</h2><p>These would turn the concept from a polished prototype into a stronger validated product case.</p></div></div>
+      <div class="branch-list"><div class="branch"><span class="tag">USABILITY</span><h3>Baseline + iteration</h3><p>Moderated tasks using the same alert set before and after a layout or decision-flow iteration.</p></div><div class="branch"><span class="tag">ACCESSIBILITY</span><h3>Verified audit</h3><p>Keyboard, screen-reader semantics, contrast and reduced-motion checks recorded as evidence.</p></div><div class="branch"><span class="tag">OUTCOME</span><h3>Real operational signal</h3><p>Only claim changes in decision time, false positives or loss prevention when backed by a real deployment or credible study.</p></div></div>
+    </section>
+
+    <div class="evidence-boundary" style="margin-top:28px"><strong>Project reality</strong><p>Sentry demonstrates product systems thinking, dense-data interaction design and implementation craft. It does not represent a deployed fraud platform or measured operational impact.</p></div>
+    <footer class="docs-footer"><span>Previous: <a href="user-flow.html">← User Flow</a></span><span>Return: <a href="design-system.html">Design System ↺</a></span></footer>
+  </div></main>
+</div>
+</body>
+</html>
