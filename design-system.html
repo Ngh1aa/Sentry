@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Sentry design system for high-stakes fraud and risk investigation workflows.">
+  <title>SENTRY — Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/documentation.css">
+</head>
+<body class="docs-page">
+<div class="docs-shell">
+  <aside class="docs-sidebar" aria-label="Sentry documentation navigation">
+    <div class="docs-brand"><div class="docs-brand-row"><strong>SENTRY</strong><span>DESIGN DOCS</span></div><p>Fraud investigation, evidence correlation, decision safety and auditability.</p></div>
+    <nav class="docs-nav"><p class="docs-nav-label">Documentation</p>
+      <a class="active" aria-current="page" href="design-system.html"><span>Design System</span><span>01</span></a>
+      <a href="component-states.html"><span>Component States</span><span>02</span></a>
+      <a href="sitemap.html"><span>Sitemap</span><span>03</span></a>
+      <a href="user-flow.html"><span>User Flow</span><span>04</span></a>
+      <a href="prototype.html"><span>Prototype</span><span>05</span></a>
+    </nav>
+    <div class="docs-sidebar-footer"><a href="index.html">← Open investigation console</a><p>Prototype data · simulated risk operations</p></div>
+  </aside>
+
+  <main class="docs-main">
+    <header class="docs-topbar"><div class="breadcrumb"><span>Sentry</span><span>/</span><strong>Design System</strong></div><span class="docs-index">01 / 05</span></header>
+    <div class="docs-content">
+      <section class="docs-hero">
+        <div><p class="eyebrow">Clinical risk operations</p><h1>High density without decision ambiguity.</h1></div>
+        <div class="docs-hero-copy"><p>Sentry uses a clinical light interface to help analysts correlate evidence quickly while keeping irreversible decisions explicit. The system favors dense information, strong grouping, persistent risk context and audit-ready rationale over decorative dashboard patterns.</p>
+          <div class="docs-meta"><div><span>Direction</span><strong>Clinical · precise · forensic</strong></div><div><span>Core user</span><strong>Fraud / risk analyst</strong></div><div><span>Signature</span><strong>Split Investigation Workspace</strong></div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.01</span><div><h2>Color system</h2><p>Purple anchors brand and primary decisions. Cyan communicates review and evidence. Pink marks critical risk and destructive paths.</p></div></div>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="swatch-color" style="background:#F4F6FA"></div><div class="swatch-copy"><strong>App canvas</strong><code>#F4F6FA</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#FFFFFF"></div><div class="swatch-copy"><strong>Surface</strong><code>#FFFFFF</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#322761"></div><div class="swatch-copy"><strong>Primary purple</strong><code>#322761</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#4496C8"></div><div class="swatch-copy"><strong>Evidence cyan</strong><code>#4496C8</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#FE678A"></div><div class="swatch-copy"><strong>Critical pink</strong><code>#FE678A</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#141527"></div><div class="swatch-copy"><strong>Primary ink</strong><code>#141527</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#475569"></div><div class="swatch-copy"><strong>Secondary ink</strong><code>#475569</code></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#E2E8F0"></div><div class="swatch-copy"><strong>Hairline border</strong><code>#E2E8F0</code></div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.02</span><div><h2>Typography</h2><p>Inter carries interface hierarchy. JetBrains Mono is reserved for IDs, timestamps, scores, IPs and evidence that benefits from fixed-width scanning.</p></div></div>
+        <div class="doc-panel span-12">
+          <div class="type-sample"><span class="type-label">Display / Inter 700</span><div class="type-display">Investigate before you act.</div></div>
+          <div class="type-sample"><span class="type-label">Body / Inter 400</span><div class="type-body">Correlate transaction, device, network and customer history before committing a high-stakes decision.</div></div>
+          <div class="type-sample"><span class="type-label">Data / JetBrains Mono</span><div class="type-mono">ALT-8921 · CASE-4401 · 2026-09-16 01:14:22 UTC · 94/100</div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.03</span><div><h2>Geometry & spacing</h2><p>Compact radii separate Sentry from spreadsheet-only tools without turning risk operations into soft consumer UI.</p></div></div>
+        <table class="token-table"><thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead><tbody>
+          <tr><td><code>radius-sm</code></td><td>6px</td><td>tabs, compact controls, alert rows</td></tr>
+          <tr><td><code>radius-md</code></td><td>10px</td><td>diagram cards, evidence panels</td></tr>
+          <tr><td><code>radius-lg</code></td><td>14px</td><td>rare large composite containers</td></tr>
+          <tr><td><code>border-color</code></td><td>#E2E8F0</td><td>default structural separation</td></tr>
+          <tr><td><code>border-focus</code></td><td>#4496C8</td><td>keyboard and active evidence focus</td></tr>
+        </tbody></table>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.04</span><div><h2>Risk language</h2><p>Every color-coded state also has a textual label. Risk meaning must never depend on hue alone.</p></div></div>
+        <div class="docs-grid">
+          <div class="doc-panel span-3"><p class="panel-kicker">Critical</p><h3><span class="state-pill risk-high">HIGH RISK</span></h3><p>Composite score above review threshold or severe correlated evidence.</p></div>
+          <div class="doc-panel span-3"><p class="panel-kicker">Conflict</p><h3><span class="state-pill risk-conflict">RULE CONFLICT</span></h3><p>Automation policies disagree and manual precedence is required.</p></div>
+          <div class="doc-panel span-3"><p class="panel-kicker">Verification</p><h3><span class="state-pill risk-review">NEEDS VERIFICATION</span></h3><p>Decision is deferred into a step-up identity challenge.</p></div>
+          <div class="doc-panel span-3"><p class="panel-kicker">Resolved</p><h3><span class="state-pill risk-clean">ALLOWED</span></h3><p>Review is closed with rationale retained in the audit trail.</p></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.05</span><div><h2>Signature layout</h2><p>The product is built around a persistent three-zone investigation model: priority queue, correlated evidence and a decision dock that never loses context.</p></div></div>
+        <div class="signature-workspace">
+          <div class="mini-queue"><div class="mini-title">Priority queue</div><div class="mini-alert active"><strong>ALT-8921 · 94</strong><span>Impossible travel + new device</span></div><div class="mini-alert"><strong>ALT-8916 · 81</strong><span>Velocity + beneficiary novelty</span></div><div class="mini-alert"><strong>ALT-8908 · 62</strong><span>Step-up review</span></div></div>
+          <div class="mini-canvas"><div class="mini-title">Forensic evidence workspace</div><div class="mini-evidence-grid"><div class="mini-evidence"><strong>Composite risk</strong><div class="risk-ring"></div></div><div class="mini-evidence"><strong>Impossible travel</strong><p>5,860 km · 42 min · 8,790 km/h</p></div><div class="mini-evidence"><strong>Device mismatch</strong><p>Claimed macOS / actual Linux automation fingerprint</p></div><div class="mini-evidence"><strong>Rule conflict</strong><p>Foreign luxury hold conflicts with VIP exemption.</p></div></div></div>
+          <div class="mini-decision"><div class="mini-title">Decision dock</div><div class="demo-stack" style="display:grid"><button class="demo-button danger">BLOCK & FREEZE</button><button class="demo-button primary">APPROVE & ALLOW</button><button class="demo-button">REQUEST STEP-UP 2FA</button><button class="demo-button ghost">ESCALATE CASE</button></div><div class="annotation" style="margin-top:12px"><strong>Rationale required.</strong> Decision tags and notes are committed with the outcome.</div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.06</span><div><h2>Component inventory</h2><p>Sentry uses visual telemetry only when it increases forensic comprehension; decorative charting is excluded.</p></div></div>
+        <div class="branch-list">
+          <div class="branch"><span class="tag">QUEUE</span><h3>Alert row</h3><p>Risk score, reason, customer, age, selection and SLA context.</p></div>
+          <div class="branch"><span class="tag">EVIDENCE</span><h3>Diagram card</h3><p>Risk gauge, velocity spline, geo hop, device comparison, entity graph and evidence trace.</p></div>
+          <div class="branch"><span class="tag">DECISION</span><h3>Decision action</h3><p>Block, allow, verify, escalate and false-positive paths with rationale capture.</p></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">01.07</span><div><h2>Motion & accessibility principles</h2><p>Motion can reveal change, but it cannot delay or obscure an analyst decision.</p></div></div>
+        <div class="docs-grid"><div class="doc-panel span-4"><p class="panel-kicker">Motion</p><h3>State change, not spectacle</h3><p>Animate queue selection, risk gauge updates and auto-advance subtly. Respect <code>prefers-reduced-motion</code>.</p></div><div class="doc-panel span-4"><p class="panel-kicker">Keyboard</p><h3>Visible focus</h3><p>Queue items, tabs and decision actions need an obvious focus indicator and predictable order.</p></div><div class="doc-panel span-4"><p class="panel-kicker">Semantics</p><h3>Text before color</h3><p>Critical, conflict, verification, frozen and resolved states remain legible without color perception.</p></div></div>
+      </section>
+
+      <div class="evidence-boundary" style="margin-top:28px"><strong>Evidence boundary</strong><p>Sentry is an implemented portfolio prototype using simulated fraud operations data. Metrics shown inside the product are scenario telemetry, not measured production outcomes.</p></div>
+      <footer class="docs-footer"><span>Product: <a href="index.html">Open Sentry console</a></span><span>Next: <a href="component-states.html">Component States →</a></span></footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
