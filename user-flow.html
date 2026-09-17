@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentry user flow for alert triage, evidence review, high-stakes decisions and recovery.">
+  <title>SENTRY — User Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/documentation.css">
+</head>
+<body class="docs-page">
+<div class="docs-shell">
+  <aside class="docs-sidebar" aria-label="Sentry documentation navigation"><div class="docs-brand"><div class="docs-brand-row"><strong>SENTRY</strong><span>DESIGN DOCS</span></div><p>Fraud investigation, evidence correlation, decision safety and auditability.</p></div><nav class="docs-nav"><p class="docs-nav-label">Documentation</p><a href="design-system.html"><span>Design System</span><span>01</span></a><a href="component-states.html"><span>Component States</span><span>02</span></a><a href="sitemap.html"><span>Sitemap</span><span>03</span></a><a class="active" aria-current="page" href="user-flow.html"><span>User Flow</span><span>04</span></a><a href="prototype.html"><span>Prototype</span><span>05</span></a></nav><div class="docs-sidebar-footer"><a href="index.html">← Open investigation console</a><p>Prototype data · simulated risk operations</p></div></aside>
+  <main class="docs-main"><header class="docs-topbar"><div class="breadcrumb"><span>Sentry</span><span>/</span><strong>User Flow</strong></div><span class="docs-index">04 / 05</span></header><div class="docs-content">
+    <section class="docs-hero"><div><p class="eyebrow">Hero investigation flow</p><h1>Evidence → decision → rationale → trace.</h1></div><div class="docs-hero-copy"><p>The core Sentry journey keeps an analyst inside one split workspace from alert selection to committed outcome. The goal is not maximum speed at any cost; it is reducing context switching while preserving enough evidence and accountability for a defensible decision.</p><div class="docs-meta"><div><span>Actor</span><strong>Fraud / risk analyst</strong></div><div><span>Scenario</span><strong>High-risk ATO signal</strong></div><div><span>Outcome</span><strong>Auditable disposition</strong></div></div></div></section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.01</span><div><h2>Normal flow</h2><p>A selected alert stays anchored while evidence, action and audit context change around it.</p></div></div>
+      <div class="flow"><div class="flow-node"><strong>1 · Select alert</strong><p>Pick prioritized item from queue; risk reason and age remain visible.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>2 · Inspect evidence</strong><p>Review risk gauge, transaction velocity, geo hop, device and beneficiary signals.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>3 · Compare history</strong><p>Check current behavior against prior account baseline and linked entities.</p></div><div class="flow-arrow">→</div><div class="flow-node decision"><strong>4 · Choose action</strong><p>Block, allow, verify, escalate or mark false positive.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>5 · Add rationale</strong><p>Apply categorical tags and enough notes for independent review.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>6 · Commit & advance</strong><p>Write audit record, update state and move to next priority item.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.02</span><div><h2>Scenario walkthrough</h2><p>The prototype’s flagship scenario combines multiple weak signals into a stronger correlated risk picture.</p></div></div>
+      <div class="docs-grid">
+        <div class="doc-panel span-4"><p class="panel-kicker">Trigger</p><h3 class="mono">ALT-8921 · 94 / 100</h3><p>A new payment event arrives with impossible travel, first-seen device behavior and unusual beneficiary context.</p></div>
+        <div class="doc-panel span-4"><p class="panel-kicker">Correlate</p><h3>Cross-signal evidence</h3><p>Device fingerprint contradicts claimed environment; geolocation delta is physically implausible; velocity departs from the account baseline.</p></div>
+        <div class="doc-panel span-4"><p class="panel-kicker">Decision</p><h3>Block & freeze</h3><p>Analyst chooses a protective action only after evidence inspection, then records tags and justification before commit.</p></div>
+      </div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.03</span><div><h2>Rule conflict branch</h2><p>Automation disagreement is not silently resolved. Sentry exposes the conflict and hands precedence to an authorized analyst.</p></div></div>
+      <div class="flow"><div class="flow-node"><strong>Triggered rule</strong><p>Rule 301: foreign luxury payment → hold.</p></div><div class="flow-arrow">+</div><div class="flow-node"><strong>Exemption</strong><p>Rule 012: trusted VIP profile → allow.</p></div><div class="flow-arrow">→</div><div class="flow-node exception"><strong>Conflict detected</strong><p>System explains both conclusions and blocks silent auto-resolution.</p></div><div class="flow-arrow">→</div><div class="flow-node decision"><strong>Analyst precedence</strong><p>Choose governing rule and record rationale.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>Audit</strong><p>Decision stores both rule inputs plus the human resolution.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.04</span><div><h2>Verification branch</h2><p>When evidence is ambiguous, the analyst can request more proof instead of forcing allow/freeze too early.</p></div></div>
+      <div class="branch-list"><div class="branch"><span class="tag">SUCCESS</span><h3>2FA verified</h3><p>Challenge succeeds; verification evidence is attached and analyst resumes review with stronger identity confidence.</p></div><div class="branch"><span class="tag">FAILED</span><h3>2FA failed</h3><p>Failure becomes additional evidence. The same alert reopens with freeze and escalation paths available.</p></div><div class="branch"><span class="tag">EXPIRED</span><h3>Challenge expired</h3><p>Timeout is shown as its own state; it is not interpreted as a failed identity proof without evidence.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.05</span><div><h2>False-positive branch</h2><p>Clearing an alert is still a high-value decision because it affects customer friction and future review patterns.</p></div></div>
+      <div class="flow"><div class="flow-node"><strong>Evidence review</strong><p>Signals initially appear risky.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>Baseline match</strong><p>Travel, device or beneficiary becomes explainable through history.</p></div><div class="flow-arrow">→</div><div class="flow-node decision"><strong>False positive</strong><p>Analyst explicitly clears the alert rather than simply closing it.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>Feedback trace</strong><p>Reason is preserved for later rule and model evaluation.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.06</span><div><h2>Operational recovery</h2><p>The most important failure mode is losing a decision after the analyst believes it has been committed.</p></div></div>
+      <div class="branch-list"><div class="branch"><span class="tag">SAVE ERROR</span><h3>Audit write fails</h3><p>Keep the selected alert and entered rationale intact. Block auto-advance and expose a safe retry.</p></div><div class="branch"><span class="tag">SOURCE DOWN</span><h3>Evidence provider unavailable</h3><p>Mark the missing source explicitly; do not collapse “unknown” into “clean”. Allow escalation or deferment.</p></div><div class="branch"><span class="tag">PERMISSION</span><h3>Action not authorized</h3><p>Explain which role can complete the action and preserve the analyst’s evidence review for handoff.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">04.07</span><div><h2>Validation plan</h2><p>These are test intentions for the prototype, not measured usability results.</p></div></div>
+      <table class="token-table"><thead><tr><th>Task</th><th>Observe</th><th>Target signal</th></tr></thead><tbody><tr><td>Find the highest-priority alert</td><td>Queue comprehension, filter use</td><td>Correct selection without scanning every row</td></tr><tr><td>Explain why ALT-8921 is risky</td><td>Evidence correlation</td><td>Participant cites multiple independent signals</td></tr><tr><td>Resolve a rule conflict</td><td>Precedence comprehension</td><td>Correct rule context + rationale captured</td></tr><tr><td>Request step-up verification</td><td>Deferral behavior</td><td>No accidental allow/freeze</td></tr><tr><td>Recover from audit save failure</td><td>State preservation</td><td>No duplicate action or lost rationale</td></tr></tbody></table>
+    </section>
+
+    <div class="evidence-boundary" style="margin-top:28px"><strong>Evidence boundary</strong><p>This flow is an implemented prototype flow derived from product framing and benchmark patterns. It does not claim measured MTTD, false-positive or fraud-loss improvement.</p></div>
+    <footer class="docs-footer"><span>Previous: <a href="sitemap.html">← Sitemap</a></span><span>Next: <a href="prototype.html">Prototype →</a></span></footer>
+  </div></main>
+</div>
+</body>
+</html>

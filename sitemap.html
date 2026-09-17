@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentry information architecture and sitemap for fraud and risk operations.">
+  <title>SENTRY — Sitemap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/documentation.css">
+</head>
+<body class="docs-page">
+<div class="docs-shell">
+  <aside class="docs-sidebar" aria-label="Sentry documentation navigation"><div class="docs-brand"><div class="docs-brand-row"><strong>SENTRY</strong><span>DESIGN DOCS</span></div><p>Fraud investigation, evidence correlation, decision safety and auditability.</p></div><nav class="docs-nav"><p class="docs-nav-label">Documentation</p><a href="design-system.html"><span>Design System</span><span>01</span></a><a href="component-states.html"><span>Component States</span><span>02</span></a><a class="active" aria-current="page" href="sitemap.html"><span>Sitemap</span><span>03</span></a><a href="user-flow.html"><span>User Flow</span><span>04</span></a><a href="prototype.html"><span>Prototype</span><span>05</span></a></nav><div class="docs-sidebar-footer"><a href="index.html">← Open investigation console</a><p>Prototype data · simulated risk operations</p></div></aside>
+  <main class="docs-main"><header class="docs-topbar"><div class="breadcrumb"><span>Sentry</span><span>/</span><strong>Sitemap</strong></div><span class="docs-index">03 / 05</span></header><div class="docs-content">
+    <section class="docs-hero"><div><p class="eyebrow">Information architecture</p><h1>Organize around the decision, not the database.</h1></div><div class="docs-hero-copy"><p>Sentry groups product areas by analyst intent: triage, investigate, decide, manage rules, inspect customers, review operations and audit outcomes. Evidence modules stay inside the active investigation so analysts do not lose context.</p><div class="docs-meta"><div><span>Primary entry</span><strong>Alert Queue</strong></div><div><span>Core object</span><strong>Alert → Case</strong></div><div><span>Cross-cutting</span><strong>Rules + Audit</strong></div></div></div></section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">03.01</span><div><h2>Product map</h2><p>The top-level structure mirrors the current console navigation while expanding the investigation detail into its evidence and decision responsibilities.</p></div></div>
+      <div class="doc-panel span-12"><div class="tree">
+        <div class="tree-row"><strong>01 · Alert Queue</strong><div class="tree-children"><span class="tree-chip">Priority list</span><span class="tree-chip">Search & filters</span><span class="tree-chip">Alert detail</span><span class="tree-chip">Composite risk</span><span class="tree-chip">Decision dock</span></div></div>
+        <div class="tree-row"><strong>Alert Detail</strong><div class="tree-children"><span class="tree-chip">Transaction telemetry</span><span class="tree-chip">Customer trust profile</span><span class="tree-chip">Device fingerprint</span><span class="tree-chip">Network & geo hop</span><span class="tree-chip">Beneficiary</span><span class="tree-chip">Triggered rules</span><span class="tree-chip">Evidence timeline</span></div></div>
+        <div class="tree-row"><strong>02 · Cases</strong><div class="tree-children"><span class="tree-chip">Assigned</span><span class="tree-chip">Escalated</span><span class="tree-chip">SLA</span><span class="tree-chip">Ownership</span><span class="tree-chip">Case history</span></div></div>
+        <div class="tree-row"><strong>03 · Rules Engine</strong><div class="tree-children"><span class="tree-chip">Rule inventory</span><span class="tree-chip">Velocity rules</span><span class="tree-chip">Precedence</span><span class="tree-chip">Conflict review</span></div></div>
+        <div class="tree-row"><strong>04 · Customers</strong><div class="tree-children"><span class="tree-chip">Identity profile</span><span class="tree-chip">Trust tier</span><span class="tree-chip">Devices</span><span class="tree-chip">Payment history</span><span class="tree-chip">Linked entities</span></div></div>
+        <div class="tree-row"><strong>05 · Analytics</strong><div class="tree-children"><span class="tree-chip">Queue health</span><span class="tree-chip">Decision telemetry</span><span class="tree-chip">False-positive monitoring</span><span class="tree-chip">Rule performance</span></div></div>
+        <div class="tree-row"><strong>06 · Audit Log</strong><div class="tree-children"><span class="tree-chip">Immutable decisions</span><span class="tree-chip">Analyst rationale</span><span class="tree-chip">Rule context</span><span class="tree-chip">Timestamps</span><span class="tree-chip">Exports</span></div></div>
+      </div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">03.02</span><div><h2>Investigation object model</h2><p>The IA distinguishes what is being reviewed from the evidence used to review it and the final disposition that becomes an audit record.</p></div></div>
+      <div class="flow"><div class="flow-node"><strong>Alert</strong><p>Prioritized risk signal with score, reason and time sensitivity.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>Evidence set</strong><p>Transaction, device, network, customer, beneficiary and rule context.</p></div><div class="flow-arrow">→</div><div class="flow-node decision"><strong>Analyst decision</strong><p>Block, allow, verify, escalate or false positive.</p></div><div class="flow-arrow">→</div><div class="flow-node"><strong>Case / audit record</strong><p>Rationale, actor, time, rule context and resulting account state.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">03.03</span><div><h2>Cross-cutting layers</h2><p>Some systems should not become separate “screens” during every decision; they supply context across multiple product areas.</p></div></div>
+      <div class="branch-list"><div class="branch"><span class="tag">RULES</span><h3>Policy context</h3><p>Triggered rules, conflicts and precedence appear inside Alert Detail while the full Rules Engine remains available for policy management.</p></div><div class="branch"><span class="tag">IDENTITY</span><h3>Customer context</h3><p>Customer history is embedded in the investigation and also accessible as a reusable 360° entity record.</p></div><div class="branch"><span class="tag">AUDIT</span><h3>Decision trace</h3><p>Every committed outcome writes an immutable record without forcing analysts to manually navigate away from the queue.</p></div></div>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">03.04</span><div><h2>Role visibility</h2><p>Navigation can remain consistent while action authority changes by role.</p></div></div>
+      <table class="token-table"><thead><tr><th>Area</th><th>Analyst</th><th>Risk lead</th><th>Rule admin</th><th>Auditor</th></tr></thead><tbody><tr><td>Alert Queue</td><td>Review + decide</td><td>Review + override</td><td>Read</td><td>Read</td></tr><tr><td>Cases</td><td>Assigned cases</td><td>All + reassign</td><td>Read</td><td>Read</td></tr><tr><td>Rules Engine</td><td>Read triggered rules</td><td>Review</td><td>Edit + publish</td><td>Read history</td></tr><tr><td>Customers</td><td>Investigate</td><td>Investigate</td><td>Read</td><td>Read</td></tr><tr><td>Analytics</td><td>Team telemetry</td><td>Operational analytics</td><td>Rule analytics</td><td>Read</td></tr><tr><td>Audit Log</td><td>Own decisions</td><td>All team decisions</td><td>Rule changes</td><td>Full audit</td></tr></tbody></table>
+    </section>
+
+    <section class="docs-section"><div class="section-head"><span class="section-no">03.05</span><div><h2>Why the queue is home</h2><p>The highest-value task is time-sensitive review. The architecture therefore opens on prioritized work rather than a KPI dashboard.</p></div></div><div class="annotation"><strong>Design decision:</strong> analytics remain one click away, but the default landing surface is actionable risk work. This reduces the distance between arrival and investigation while keeping metrics separate from the evidence needed for an individual decision.</div></section>
+
+    <footer class="docs-footer"><span>Previous: <a href="component-states.html">← Component States</a></span><span>Next: <a href="user-flow.html">User Flow →</a></span></footer>
+  </div></main>
+</div>
+</body>
+</html>
