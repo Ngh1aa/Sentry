@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentry component states for fraud investigation, risk decisions and recovery paths.">
+  <title>SENTRY — Component States</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/documentation.css">
+</head>
+<body class="docs-page">
+<div class="docs-shell">
+  <aside class="docs-sidebar" aria-label="Sentry documentation navigation">
+    <div class="docs-brand"><div class="docs-brand-row"><strong>SENTRY</strong><span>DESIGN DOCS</span></div><p>Fraud investigation, evidence correlation, decision safety and auditability.</p></div>
+    <nav class="docs-nav"><p class="docs-nav-label">Documentation</p>
+      <a href="design-system.html"><span>Design System</span><span>01</span></a><a class="active" aria-current="page" href="component-states.html"><span>Component States</span><span>02</span></a><a href="sitemap.html"><span>Sitemap</span><span>03</span></a><a href="user-flow.html"><span>User Flow</span><span>04</span></a><a href="prototype.html"><span>Prototype</span><span>05</span></a>
+    </nav>
+    <div class="docs-sidebar-footer"><a href="index.html">← Open investigation console</a><p>Prototype data · simulated risk operations</p></div>
+  </aside>
+  <main class="docs-main"><header class="docs-topbar"><div class="breadcrumb"><span>Sentry</span><span>/</span><strong>Component States</strong></div><span class="docs-index">02 / 05</span></header>
+    <div class="docs-content">
+      <section class="docs-hero"><div><p class="eyebrow">Behavior inventory</p><h1>Every risk state needs a next action.</h1></div><div class="docs-hero-copy"><p>High-stakes interfaces fail when critical states look similar. Sentry separates visual state, operational meaning and recovery so analysts can distinguish “review”, “conflict”, “frozen” and “resolved” without guessing.</p><div class="docs-meta"><div><span>Coverage</span><strong>Default → recovery</strong></div><div><span>Priority</span><strong>Decision safety</strong></div><div><span>Rule</span><strong>Meaning before decoration</strong></div></div></div></section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">02.01</span><div><h2>Decision buttons</h2><p>Actions are intentionally differentiated by consequence. Destructive and irreversible paths should never be visually interchangeable with deferral.</p></div></div>
+        <div class="state-grid">
+          <div class="state-label">State</div><div class="state-label">Block</div><div class="state-label">Allow</div><div class="state-label">Step-up</div><div class="state-label">Behavior</div>
+          <div class="state-label">Default</div><div><button class="demo-button danger">BLOCK & FREEZE</button></div><div><button class="demo-button primary">APPROVE & ALLOW</button></div><div><button class="demo-button">REQUEST 2FA</button></div><div class="state-note">Available after evidence review.</div>
+          <div class="state-label">Focus</div><div><button class="demo-button danger" style="outline:2px solid var(--accent-cyan);outline-offset:2px">BLOCK & FREEZE</button></div><div><button class="demo-button primary" style="outline:2px solid var(--accent-cyan);outline-offset:2px">APPROVE & ALLOW</button></div><div><button class="demo-button" style="outline:2px solid var(--accent-cyan);outline-offset:2px">REQUEST 2FA</button></div><div class="state-note">Visible focus for keyboard review.</div>
+          <div class="state-label">Disabled</div><div><button class="demo-button danger" disabled>BLOCK & FREEZE</button></div><div><button class="demo-button primary" disabled>APPROVE & ALLOW</button></div><div><button class="demo-button" disabled>REQUEST 2FA</button></div><div class="state-note">Pair disabled state with a reason: permission, missing rationale or unresolved conflict.</div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">02.02</span><div><h2>Alert queue states</h2><p>Queue state must combine risk, selection and time sensitivity without turning every alert into the same red rectangle.</p></div></div>
+        <div class="docs-grid">
+          <div class="doc-panel span-3"><p class="panel-kicker">Default</p><h3 class="mono">ALT-8916 · 81</h3><p>Velocity anomaly · new beneficiary</p><div style="margin-top:12px"><span class="state-pill risk-high">HIGH RISK</span></div></div>
+          <div class="doc-panel span-3" style="border-color:var(--risk-high);box-shadow:inset 3px 0 0 var(--risk-high)"><p class="panel-kicker">Selected</p><h3 class="mono">ALT-8921 · 94</h3><p>Impossible travel · device mismatch</p><div style="margin-top:12px"><span class="state-pill risk-high">ACTIVE REVIEW</span></div></div>
+          <div class="doc-panel span-3"><p class="panel-kicker">Conflict</p><h3 class="mono">ALT-8899 · 77</h3><p>Rule 301 conflicts with VIP exemption.</p><div style="margin-top:12px"><span class="state-pill risk-conflict">RULE CONFLICT</span></div></div>
+          <div class="doc-panel span-3" style="opacity:.65"><p class="panel-kicker">Resolved</p><h3 class="mono">ALT-8871 · 24</h3><p>Baseline matched · analyst cleared.</p><div style="margin-top:12px"><span class="state-pill risk-clean">ALLOWED</span></div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">02.03</span><div><h2>Investigation states</h2><p>The workspace should preserve context while the underlying status changes.</p></div></div>
+        <div class="branch-list">
+          <div class="branch"><span class="tag">HIGH_RISK</span><h3>Immediate review</h3><p>Composite evidence crosses the review threshold. Decision dock opens with destructive action clearly labeled, never auto-executed.</p></div>
+          <div class="branch"><span class="tag">RULE_CONFLICT</span><h3>Manual precedence</h3><p>Two rules disagree. Show both rule sources, precedence options and the rationale required to resolve the conflict.</p></div>
+          <div class="branch"><span class="tag">NEEDS_VERIFICATION</span><h3>Step-up pending</h3><p>Analyst defers the final decision until an out-of-band identity challenge succeeds, fails or expires.</p></div>
+          <div class="branch"><span class="tag">FROZEN</span><h3>Outbound rails locked</h3><p>Account state is visibly frozen and downstream actions communicate what remains possible.</p></div>
+          <div class="branch"><span class="tag">FALSE_POSITIVE</span><h3>Baseline restored</h3><p>Clear the alert, retain rationale and feed the disposition back into review history.</p></div>
+          <div class="branch"><span class="tag">ESCALATED</span><h3>Specialist handoff</h3><p>Ownership changes without losing evidence, SLA context, notes or previous analyst actions.</p></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">02.04</span><div><h2>Evidence panel states</h2><p>Not every signal arrives cleanly. Missing or contradictory data needs an explicit treatment.</p></div></div>
+        <div class="docs-grid">
+          <div class="doc-panel span-4"><p class="panel-kicker">Loading</p><h3>Device fingerprint</h3><p>Reserve layout space, announce retrieval status and avoid implying “clean” before evidence arrives.</p><div class="annotation" style="margin-top:12px"><strong>Fetching telemetry…</strong> Device and network evidence is still loading.</div></div>
+          <div class="doc-panel span-4"><p class="panel-kicker">Unavailable</p><h3>Network intelligence</h3><p>Unavailable is different from no risk detected.</p><div class="annotation" style="margin-top:12px;border-left-color:var(--text-muted)"><strong>Source unavailable.</strong> Proxy reputation service did not return a result.</div></div>
+          <div class="doc-panel span-4"><p class="panel-kicker">Conflict</p><h3>Policy rules</h3><p>Conflicting rule conclusions stay side-by-side until an analyst records precedence.</p><div class="annotation" style="margin-top:12px;border-left-color:var(--risk-high)"><strong>Rule conflict.</strong> Foreign luxury hold vs VIP exemption.</div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">02.05</span><div><h2>Rationale field states</h2><p>Rationale is part of the audit artifact, not optional microcopy after the decision.</p></div></div>
+        <div class="docs-grid">
+          <div class="doc-panel span-4"><p class="panel-kicker">Default</p><label for="reason-default" style="display:block;font-size:11px;margin-bottom:6px">Analyst note</label><textarea id="reason-default" rows="4" style="width:100%;border:1px solid var(--border-color);border-radius:6px;padding:10px;font:inherit" placeholder="Add decision rationale…"></textarea></div>
+          <div class="doc-panel span-4"><p class="panel-kicker">Validation error</p><label for="reason-error" style="display:block;font-size:11px;margin-bottom:6px">Analyst note</label><textarea id="reason-error" rows="4" style="width:100%;border:1px solid var(--risk-high);border-radius:6px;padding:10px;font:inherit">Impossible travel</textarea><p style="color:var(--risk-high);margin-top:6px">Add enough context for an independent audit reviewer.</p></div>
+          <div class="doc-panel span-4"><p class="panel-kicker">Committed</p><h3>Decision recorded</h3><p class="mono">DN · 01:18:42 UTC</p><div class="annotation" style="margin-top:12px"><strong>[ATO] [Impossible Travel]</strong><br>Device mismatch plus impossible travel and first-seen beneficiary justify freeze and escalation.</div></div>
+        </div>
+      </section>
+
+      <section class="docs-section"><div class="section-head"><span class="section-no">02.06</span><div><h2>Recovery states</h2><p>When the happy path breaks, Sentry should preserve the investigation and make the next safe move obvious.</p></div></div>
+        <div class="branch-list"><div class="branch"><span class="tag">2FA FAILED</span><h3>Challenge unsuccessful</h3><p>Return to the same alert with the failed challenge attached to evidence; allow freeze or escalation.</p></div><div class="branch"><span class="tag">2FA EXPIRED</span><h3>Verification window closed</h3><p>Mark the challenge expired; do not silently treat it as a customer failure.</p></div><div class="branch"><span class="tag">SAVE ERROR</span><h3>Audit commit failed</h3><p>Do not auto-advance. Retain the analyst decision locally and offer a safe retry while preventing duplicate actions.</p></div></div>
+      </section>
+
+      <footer class="docs-footer"><span>Previous: <a href="design-system.html">← Design System</a></span><span>Next: <a href="sitemap.html">Sitemap →</a></span></footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
