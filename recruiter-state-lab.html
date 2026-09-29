@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,follow">
+  <title>SENTRY — Recruiter State Lab</title>
+  <style>
+    :root{color-scheme:light;--ink:#191b22;--muted:#686d79;--line:#d8dbe2;--violet:#322761;--bg:#f4f5f7}
+    *{box-sizing:border-box}html,body{height:100%;margin:0}body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+    .labbar{min-height:68px;display:flex;align-items:center;gap:14px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);position:relative;z-index:20}.brand{min-width:230px}.brand strong{display:block;font:700 12px/1.2 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em}.brand span{display:block;color:var(--muted);font-size:11px;margin-top:4px}.states{display:flex;gap:5px;flex:1;overflow-x:auto}.state,.utility{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 10px;font:700 11px/1 ui-monospace,monospace;cursor:pointer;white-space:nowrap}.state[aria-pressed="true"]{background:var(--violet);border-color:var(--violet);color:#fff}.utility{text-decoration:none}.status{min-width:230px;text-align:right;color:var(--muted);font:600 10px/1.25 ui-monospace,monospace}.wrap{height:calc(100% - 68px);position:relative}.frame{display:block;width:100%;height:100%;border:0;background:white}.flag{position:absolute;right:12px;bottom:12px;background:rgba(25,27,34,.94);color:white;padding:7px 9px;font:600 10px/1.3 ui-monospace,monospace;z-index:10;pointer-events:none}
+    @media(max-width:900px){.labbar{flex-wrap:wrap}.brand{min-width:160px}.status{display:none}.states{order:3;flex-basis:100%}.wrap{height:calc(100% - 108px)}}
+  </style>
+</head>
+<body>
+<header class="labbar">
+  <div class="brand"><strong>SENTRY / RECRUITER STATE LAB</strong><span>Failure-aware fraud operations prototype</span></div>
+  <div class="states" role="group" aria-label="Choose prototype state">
+    <button class="state" data-state="normal" aria-pressed="false">NORMAL</button>
+    <button class="state" data-state="empty" aria-pressed="false">EMPTY QUEUE</button>
+    <button class="state" data-state="loading" aria-pressed="false">FORENSIC LOADING</button>
+    <button class="state" data-state="error" aria-pressed="false">DECISION ERROR</button>
+    <button class="state" data-state="edge" aria-pressed="false">50-LINK EDGE</button>
+  </div>
+  <div class="status" id="status">READY</div>
+  <a class="utility" href="prototype.html">PROTOTYPE GUIDE</a>
+  <button class="utility" id="copy" type="button">COPY LINK</button>
+</header>
+<div class="wrap">
+  <iframe class="frame" id="frame" title="Sentry fraud operations prototype"></iframe>
+  <div class="flag">SIMULATED RISK DATA · STATE FORCED FOR REVIEW</div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const frame = document.getElementById('frame');
+  const status = document.getElementById('status');
+  const buttons = [...document.querySelectorAll('[data-state]')];
+  let active = 'normal';
+  let timer = null;
+
+  const labels = {
+    normal:'NORMAL INVESTIGATION WORKSPACE',
+    empty:'QUEUE CLEAR · 0 ALERTS WAITING',
+    loading:'CORRELATING FORENSIC SOURCES · 1.1S SIMULATION',
+    error:'DECISION SERVICE FAILURE · NO SILENT COMMIT',
+    edge:'EDGE CASE · 50 LINKED TRANSACTIONS'
+  };
+
+  function addStyle(doc, css){const s=doc.createElement('style');s.dataset.stateLab='true';s.textContent=css;doc.head.appendChild(s)}
+  function setPressed(){buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.state===active)))}
+  function setState(next, updateUrl=true){
+    if(!labels[next]) next='normal'; active=next; clearTimeout(timer); setPressed(); status.textContent=labels[next];
+    if(updateUrl){const u=new URL(location.href);u.searchParams.set('state',next);history.replaceState({},'',u)}
+    frame.src='index.html?lab=1&state='+encodeURIComponent(next);
+  }
+
+  function emptyState(doc){
+    addStyle(doc, `
+      .sentry-lab-empty{min-height:calc(100vh - 135px);display:grid;place-items:center;padding:50px;text-align:center;background:linear-gradient(180deg,#fbfcfd,#f4f6f8);border-left:1px solid #e0e2e7;border-right:1px solid #e0e2e7}.sentry-lab-empty .seal{width:60px;height:60px;border:1px solid #9aa1ad;display:grid;place-items:center;margin:0 auto 18px;font:800 20px ui-monospace,monospace;color:#322761;background:#fff}.sentry-lab-empty h1{font-size:28px;margin:0 0 8px}.sentry-lab-empty p{max-width:650px;color:#666c78;line-height:1.55;margin:0 auto}.sentry-lab-empty .meta{margin-top:22px;padding-top:16px;border-top:1px solid #d8dbe2;font:600 11px ui-monospace,monospace}.sentry-lab-disabled{opacity:.42;pointer-events:none}
+    `);
+    const list=doc.getElementById('alertQueueList'); if(list) list.innerHTML='<div class="queue-empty"><strong>Queue clear.</strong><br>0 alerts are waiting for analyst review.</div>';
+    const badge=doc.getElementById('queueCountBadge'); if(badge) badge.textContent='0 Alerts';
+    const kpi=doc.getElementById('kpiOpenAlerts'); if(kpi){kpi.textContent='0 Pending Reviews';kpi.classList.remove('text-danger');kpi.classList.add('text-clean')}
+    const canvas=doc.querySelector('.split-evidence-canvas'); if(canvas) canvas.innerHTML='<div class="sentry-lab-empty"><div><div class="seal" aria-hidden="true">0</div><div class="mono" style="font-size:11px;letter-spacing:.08em;margin-bottom:10px">INVESTIGATION QUEUE / CLEAR</div><h1>No alerts require review.</h1><p>The queue is healthy and there is no active case to decide. Sentry keeps the workspace explicit rather than leaving an empty forensic canvas that could be mistaken for a loading or data failure.</p><div class="meta">LAST RESOLVED · CASE-4399 · 14:32 UTC &nbsp; / &nbsp; NEXT ACTION · WAIT FOR NEW RISK EVENT</div></div></div>';
+    doc.querySelector('.split-decision-dock')?.classList.add('sentry-lab-disabled');
+  }
+
+  function loadingState(doc){
+    addStyle(doc, `
+      @keyframes sentryLabPulse{0%,100%{opacity:.45}50%{opacity:1}}.sentry-lab-loading{padding:18px 20px}.sentry-lab-loading-head{border:1px solid #d8dbe2;background:#fff;padding:14px 16px;margin-bottom:12px;font:700 11px ui-monospace,monospace}.sentry-lab-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.sentry-lab-sk{min-height:164px;border:1px solid #d8dbe2;background:#fff;padding:14px}.sentry-lab-sk b{font:700 10px ui-monospace,monospace;letter-spacing:.05em}.sentry-lab-lines{margin-top:18px;display:grid;gap:9px}.sentry-lab-lines span{display:block;height:10px;background:#e8eaee;animation:sentryLabPulse 1s ease-in-out infinite}.sentry-lab-lines span:nth-child(2){width:68%}.sentry-lab-lines span:nth-child(3){width:84%}.sentry-lab-wide{grid-column:span 2;min-height:230px}.sentry-lab-progress{height:3px;background:#e2e4e9;margin-top:11px;overflow:hidden}.sentry-lab-progress i{display:block;height:100%;width:48%;background:#322761;animation:sentryLabPulse .8s ease-in-out infinite}@media(max-width:1000px){.sentry-lab-grid{grid-template-columns:1fr 1fr}.sentry-lab-wide{grid-column:span 2}}@media(prefers-reduced-motion:reduce){.sentry-lab-lines span,.sentry-lab-progress i{animation:none}}
+    `);
+    const canvas=doc.querySelector('.split-evidence-canvas'); if(!canvas) return;
+    canvas.innerHTML='<div class="sentry-lab-loading" aria-busy="true" aria-live="polite"><div class="sentry-lab-loading-head">CORRELATING FORENSIC EVIDENCE · DEVICE / NETWORK / BENEFICIARY / VELOCITY / RULES<div class="sentry-lab-progress" aria-hidden="true"><i></i></div></div><div class="sentry-lab-grid"><div class="sentry-lab-sk"><b>COMPOSITE RISK</b><div class="sentry-lab-lines"><span></span><span></span><span></span></div></div><div class="sentry-lab-sk"><b>VELOCITY WINDOW</b><div class="sentry-lab-lines"><span></span><span></span><span></span></div></div><div class="sentry-lab-sk"><b>PAYMENT INSTRUMENT</b><div class="sentry-lab-lines"><span></span><span></span><span></span></div></div><div class="sentry-lab-sk sentry-lab-wide"><b>ENTITY RELATIONSHIPS</b><div class="sentry-lab-lines"><span></span><span></span><span></span><span></span><span></span></div></div><div class="sentry-lab-sk"><b>EVIDENCE TRACE</b><div class="sentry-lab-lines"><span></span><span></span><span></span><span></span></div></div></div></div>';
+    const u=new URL(location.href); if(!u.searchParams.has('pin')) timer=setTimeout(()=>{if(active==='loading')setState('normal')},1100);
+  }
+
+  function errorState(doc){
+    addStyle(doc, `
+      .sentry-lab-error{border:1px solid #b22338;background:#fff4f5;color:#681421;padding:14px;margin:12px}.sentry-lab-error strong{display:block;font:800 12px ui-monospace,monospace;margin-bottom:6px}.sentry-lab-error p{font-size:12px;line-height:1.45;margin:0 0 10px}.sentry-lab-error button{border:1px solid #681421;background:#fff;color:#681421;padding:8px 10px;font:700 10px ui-monospace,monospace;cursor:pointer}.sentry-lab-action-failed{outline:2px solid #b22338;outline-offset:2px}
+    `);
+    const dock=doc.querySelector('.split-decision-dock'); if(!dock) return;
+    dock.insertAdjacentHTML('afterbegin','<div class="sentry-lab-error" role="alert"><strong>DECISION NOT RECORDED</strong><p>The decision service is unavailable. The case remains open, no block/allow action was committed, and the analyst rationale is preserved for a safe retry.</p><button id="sentryLabRetry" type="button">RETRY IN NORMAL STATE</button></div>');
+    doc.getElementById('sentryLabRetry')?.addEventListener('click',()=>setState('normal'));
+    const stop=e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const panel=doc.querySelector('.sentry-lab-error');panel?.classList.add('sentry-lab-action-failed');setTimeout(()=>panel?.classList.remove('sentry-lab-action-failed'),300)};
+    ['btnActionFreeze','btnActionApprove','btnActionStepUp','btnActionEscalate','btnActionFalsePositive'].forEach(id=>doc.getElementById(id)?.addEventListener('click',stop,true));
+    doc.defaultView.addEventListener('keydown',e=>{if(['b','B','a','A','v','V'].includes(e.key))stop(e)},true);
+    const state=doc.getElementById('evidenceStateBadge'); if(state){state.textContent='ACTION RETRY';state.className='badge-status badge-danger'}
+  }
+
+  function edgeState(doc){
+    addStyle(doc, `
+      .sentry-lab-linked{border:1px solid #d8dbe2;background:#fff}.sentry-lab-linked-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:16px;padding:10px 12px;background:#f6f7f9;border-bottom:1px solid #d8dbe2;font:700 10px ui-monospace,monospace}.sentry-lab-linked-list{max-height:330px;overflow:auto}.sentry-lab-linked-row{display:grid;grid-template-columns:70px minmax(150px,1.6fr) minmax(110px,1fr) 95px;gap:10px;padding:8px 12px;border-bottom:1px solid #eceef1;font:600 10px/1.35 ui-monospace,monospace;align-items:center}.sentry-lab-linked-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sentry-lab-linked-row b{color:#8d2332}.sentry-lab-long{overflow-wrap:anywhere;white-space:normal!important}.sentry-lab-edge-note{padding:10px 12px;background:#fff9e9;border-bottom:1px solid #e7d7a4;font-size:11px;line-height:1.4}@media(max-width:1050px){.sentry-lab-linked-row{grid-template-columns:60px 1fr 90px}.sentry-lab-linked-row span:nth-child(3){display:none}}
+    `);
+    const host=doc.getElementById('entityGraphContainer'); if(!host) return;
+    const rows=Array.from({length:50},(_,i)=>{const n=String(i+1).padStart(2,'0');const merchant=i%7===0?'INTERNATIONAL-MERCHANT-NAME-WITH-VERY-LONG-REFERENCE-'+n:'Counterparty '+n;const amt=(1480+i*173.41).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});return `<div class="sentry-lab-linked-row"><b>TX-${n}</b><span class="${i===7?'sentry-lab-long':''}" title="${merchant}">${merchant}</span><span>IBAN••${String(6800+i).padStart(4,'0')}</span><span>$${amt}</span></div>`}).join('');
+    host.innerHTML=`<div class="sentry-lab-linked"><div class="sentry-lab-linked-head"><span>RELATED TRANSACTION CLUSTER</span><span>50 LINKS · STRESS DATASET</span></div><div class="sentry-lab-edge-note">Edge-case simulation: a single case expands to 50 related payments, long merchant references and repeated counterparties. The evidence region scrolls locally instead of stretching the entire decision workspace.</div><div class="sentry-lab-linked-list">${rows}</div></div>`;
+    const cust=doc.getElementById('evidenceCustomerInfo'); if(cust) cust.innerHTML='<span class="bold text-white">Alexandria-Marguerite van der Westhuizen-Smith</span> <span class="text-muted">(CUS-EXTREMELY-LONG-094881)</span> · <span class="badge-tag tag-clean">TRUSTED</span>';
+  }
+
+  function apply(){const doc=frame.contentDocument;if(!doc)return;if(active==='empty')emptyState(doc);if(active==='loading')loadingState(doc);if(active==='error')errorState(doc);if(active==='edge')edgeState(doc)}
+  frame.addEventListener('load',()=>requestAnimationFrame(apply));
+  buttons.forEach(b=>b.addEventListener('click',()=>setState(b.dataset.state)));
+  document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);status.textContent='STATE LINK COPIED'}catch{status.textContent='COPY UNAVAILABLE · USE ADDRESS BAR'}});
+  setState(new URL(location.href).searchParams.get('state')||'normal',false);
+})();
+</script>
+</body>
+</html>

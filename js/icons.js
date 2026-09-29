@@ -122,3 +122,25 @@ window.SentryIcons = SentryIcons;
   script.dataset.sentrySecondary = 'script';
   document.head.appendChild(script);
 })();
+
+// Recruiter-facing state coverage launcher. It stays out of the State Lab iframe
+// itself so the product surface remains readable while still making lifecycle
+// states discoverable from the first live screen.
+(() => {
+  if (new URLSearchParams(window.location.search).get('lab') === '1') return;
+  if (document.querySelector('[data-sentry-state-lab-launcher]')) return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .sentry-state-lab-launcher{position:fixed;right:14px;bottom:14px;z-index:10000;display:flex;align-items:center;gap:8px;border:1px solid #322761;background:rgba(255,255,255,.96);padding:8px 10px;color:#191b22;text-decoration:none;font:700 10px/1 "JetBrains Mono",ui-monospace,monospace;box-shadow:0 8px 24px rgba(30,25,55,.16)}.sentry-state-lab-launcher:before{content:"QA";display:grid;place-items:center;width:24px;height:20px;background:#322761;color:#fff;font-size:9px}.sentry-state-lab-launcher:hover{background:#322761;color:#fff}.sentry-state-lab-launcher:focus-visible{outline:3px solid #7e6fd0;outline-offset:2px}.sentry-state-lab-launcher small{font-size:9px;color:#767b86}.sentry-state-lab-launcher:hover small{color:#d9d4f2}@media(max-width:760px){.sentry-state-lab-launcher{right:8px;bottom:8px}.sentry-state-lab-launcher small{display:none}}
+  `;
+  document.head.appendChild(style);
+
+  const link = document.createElement('a');
+  link.href = 'recruiter-state-lab.html?state=normal';
+  link.className = 'sentry-state-lab-launcher';
+  link.dataset.sentryStateLabLauncher = 'true';
+  link.setAttribute('aria-label', 'Open Recruiter State Lab for empty queue, forensic loading, decision failure and high-volume evidence states');
+  link.innerHTML = '<span>STATE LAB</span><small>EMPTY · LOAD · ERROR · EDGE</small>';
+  document.body.appendChild(link);
+})();
