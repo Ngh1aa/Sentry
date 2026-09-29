@@ -12,20 +12,27 @@
 <body>
 <header class="head"><div><p>RECRUITER EVIDENCE / FAILURE-AWARE OPERATIONS</p><h1>Sentry state matrix</h1></div><a href="recruiter-state-lab.html?state=normal">OPEN INTERACTIVE STATE LAB →</a></header>
 <main class="grid">
-  <section class="tile"><div class="tile-head"><strong>01 / EMPTY</strong><span>0 alerts waiting</span></div><div class="viewport"><iframe title="Sentry empty queue state" src="recruiter-state-lab.html?state=empty&pin=1&matrix=1"></iframe></div></section>
-  <section class="tile"><div class="tile-head"><strong>02 / LOADING</strong><span>Forensic correlation</span></div><div class="viewport"><iframe title="Sentry forensic loading state" src="recruiter-state-lab.html?state=loading&pin=1&matrix=1"></iframe></div></section>
-  <section class="tile"><div class="tile-head"><strong>03 / ERROR</strong><span>Decision service failure</span></div><div class="viewport"><iframe title="Sentry decision error state" src="recruiter-state-lab.html?state=error&pin=1&matrix=1"></iframe></div></section>
-  <section class="tile"><div class="tile-head"><strong>04 / EDGE</strong><span>50 linked transactions</span></div><div class="viewport"><iframe title="Sentry evidence stress state" src="recruiter-state-lab.html?state=edge&pin=1&matrix=1"></iframe></div></section>
+  <section class="tile"><div class="tile-head"><strong>01 / EMPTY</strong><span>0 alerts waiting</span></div><div class="viewport"><iframe data-state="empty" title="Sentry empty queue state" src="recruiter-state-lab.html?state=empty&pin=1&matrix=1"></iframe></div></section>
+  <section class="tile"><div class="tile-head"><strong>02 / LOADING</strong><span>Forensic correlation</span></div><div class="viewport"><iframe data-state="loading" title="Sentry forensic loading state" src="recruiter-state-lab.html?state=loading&pin=1&matrix=1"></iframe></div></section>
+  <section class="tile"><div class="tile-head"><strong>03 / ERROR</strong><span>Decision service failure</span></div><div class="viewport"><iframe data-state="error" title="Sentry decision error state" src="recruiter-state-lab.html?state=error&pin=1&matrix=1"></iframe></div></section>
+  <section class="tile"><div class="tile-head"><strong>04 / EDGE</strong><span>50 linked transactions</span></div><div class="viewport"><iframe data-state="edge" title="Sentry evidence stress state" src="recruiter-state-lab.html?state=edge&pin=1&matrix=1"></iframe></div></section>
 </main>
 <script>
-  document.querySelectorAll('iframe').forEach(frame => frame.addEventListener('load', () => {
-    try {
-      const doc=frame.contentDocument;
-      const bar=doc.querySelector('.labbar'); if(bar) bar.style.display='none';
-      const flag=doc.querySelector('.flag'); if(flag) flag.style.display='none';
-      const wrap=doc.querySelector('.wrap'); if(wrap) wrap.style.height='100%';
-    } catch {}
-  }));
+  const selectorFor={empty:'.sentry-lab-empty',loading:'.sentry-lab-loading',error:'.sentry-lab-error',edge:'.sentry-lab-linked'};
+  const focusState=(outer)=>{
+    try{
+      const lab=outer.contentDocument;
+      const bar=lab.querySelector('.labbar'); if(bar) bar.style.display='none';
+      const flag=lab.querySelector('.flag'); if(flag) flag.style.display='none';
+      const wrap=lab.querySelector('.wrap'); if(wrap) wrap.style.height='100%';
+      const product=lab.querySelector('#frame');
+      const selector=selectorFor[outer.dataset.state];
+      const focus=()=>{try{const target=product?.contentDocument?.querySelector(selector);if(target){target.scrollIntoView({block:'center'});product.contentWindow.scrollBy(0,-14)}}catch{}};
+      product?.addEventListener('load',()=>setTimeout(focus,520),{once:true});
+      setTimeout(focus,760);
+    }catch{}
+  };
+  document.querySelectorAll('iframe[data-state]').forEach(frame=>frame.addEventListener('load',()=>focusState(frame)));
 </script>
 </body>
 </html>
