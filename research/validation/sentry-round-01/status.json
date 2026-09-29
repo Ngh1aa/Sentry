@@ -1,0 +1,37 @@
+{
+  "study_id": "sentry-round-01",
+  "product": "Sentry",
+  "study_type": "moderated task-based usability / decision-comprehension test",
+  "status": "READY_TO_RECRUIT",
+  "evidence_state": "PLANNED_VALIDATION",
+  "target_participants": 5,
+  "verified_sessions": 0,
+  "preferred_population": "fraud/risk/payments/compliance/trust-and-safety/security operations practitioners",
+  "proxy_population_allowed": true,
+  "proxy_rule": "Adjacent operations/compliance/security participants remain PROXY and may not be promoted to DIRECT_USER.",
+  "prototype_routes": [
+    "index.html",
+    "recovery-scenario.html"
+  ],
+  "research_assets": {
+    "study_plan": "research/validation/sentry-round-01/STUDY-PLAN.md",
+    "screener_and_consent": "research/validation/sentry-round-01/SCREENER-AND-CONSENT.md",
+    "session_template": "research/validation/sentry-round-01/SESSION-TEMPLATE.md",
+    "atomic_ledger": "research/validation/sentry-round-01/evidence-ledger.jsonl",
+    "findings": "research/validation/sentry-round-01/FINDINGS.md",
+    "decision_log": "research/validation/sentry-round-01/DECISION-LOG.md"
+  },
+  "next_valid_transition": "Recruit an eligible participant, obtain consent, record an anonymized session, append atomic evidence, then synthesize without promoting proxy evidence or invented metrics.",
+  "allowed_claims": [
+    "A working audit-save recovery scenario exists",
+    "A moderated validation round is ready to recruit",
+    "Direct-user evidence has not been collected yet"
+  ],
+  "forbidden_claims_until_verified": [
+    "Sentry has been validated by fraud analysts",
+    "Sentry reduces decision time",
+    "Sentry reduces false positives",
+    "Sentry prevents fraud losses",
+    "The recovery model improves task success"
+  ]
+}
