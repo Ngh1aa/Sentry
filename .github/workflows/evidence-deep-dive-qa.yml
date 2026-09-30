@@ -1,0 +1,48 @@
+name: Sentry Evidence Deep Dive QA
+
+on:
+  push:
+    branches:
+      - feat/evidence-deep-dive
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-lens:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser test dependency
+        run: npm install --no-save @playwright/test@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4199 --bind 127.0.0.1 > /tmp/sentry-evidence-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4199/design-lens.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/sentry-evidence-http.log
+          exit 1
+      - name: Run evidence lens + research truth gate
+        env:
+          SENTRY_BASE_URL: http://127.0.0.1:4199
+        run: npx playwright test qa/evidence-lens.spec.mjs --browser=chromium --workers=1
+      - name: Upload rendered evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry-evidence-deep-dive
+          path: qa-artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
