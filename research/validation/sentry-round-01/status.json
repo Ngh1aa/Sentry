@@ -6,23 +6,38 @@
   "evidence_state": "PLANNED_VALIDATION",
   "target_participants": 5,
   "verified_sessions": 0,
+  "verified_direct_user_sessions": 0,
+  "verified_proxy_sessions": 0,
   "preferred_population": "fraud/risk/payments/compliance/trust-and-safety/security operations practitioners",
   "proxy_population_allowed": true,
   "proxy_rule": "Adjacent operations/compliance/security participants remain PROXY and may not be promoted to DIRECT_USER.",
   "prototype_routes": [
+    "design-lens.html",
     "index.html",
+    "recruiter-state-lab.html",
     "recovery-scenario.html"
+  ],
+  "priority_decisions": [
+    "D-01",
+    "D-02",
+    "D-03",
+    "D-04"
   ],
   "research_assets": {
     "study_plan": "research/validation/sentry-round-01/STUDY-PLAN.md",
     "screener_and_consent": "research/validation/sentry-round-01/SCREENER-AND-CONSENT.md",
     "session_template": "research/validation/sentry-round-01/SESSION-TEMPLATE.md",
+    "participant_tracker": "research/validation/sentry-round-01/PARTICIPANT-TRACKER.md",
+    "recruitment_message": "research/validation/sentry-round-01/RECRUITMENT-MESSAGE.md",
     "atomic_ledger": "research/validation/sentry-round-01/evidence-ledger.jsonl",
     "findings": "research/validation/sentry-round-01/FINDINGS.md",
     "decision_log": "research/validation/sentry-round-01/DECISION-LOG.md"
   },
+  "iteration_gate": "Do not claim an evidence-driven iteration until verified session evidence points to a named decision. A changed UI is an iteration, not a validated improvement.",
+  "retest_gate": "After a named decision changes, freeze the changed build and rerun the affected task with new or explicitly marked returning participants before claiming improvement.",
   "next_valid_transition": "Recruit an eligible participant, obtain consent, record an anonymized session, append atomic evidence, then synthesize without promoting proxy evidence or invented metrics.",
   "allowed_claims": [
+    "A recruiter-facing design lens exists with decision pins, conceptual baseline/current comparison, a five-step tour and links to forced operational states",
     "A working audit-save recovery scenario exists",
     "A moderated validation round is ready to recruit",
     "Direct-user evidence has not been collected yet"
