@@ -118,10 +118,10 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await expect(page.locator('#btnActionFreeze')).toBeDisabled();
   await expect(page.locator('#decisionSafetyStatus')).toContainText('Decision committed: FROZEN');
 
-  // A decision that conflicts with the model recommendation is visibly flagged.
+  // Approving an alert whose current model recommendation is BLOCK & FREEZE is a real override.
   await page.locator('.queue-alert-card', { hasText: 'ALT-8920' }).click();
-  await note.fill('Travel evidence is plausible, but the unresolved policy conflict requires a supervisor-safe containment choice.');
-  await page.locator('#btnActionFreeze').click();
+  await note.fill('Travel evidence is plausible, and the available context supports allowing the payment despite the model containment recommendation.');
+  await page.locator('#btnActionApprove').click();
   await expect(page.locator('#pendingDecisionImpact')).toContainText('overrides the model recommendation');
   await page.locator('#btnCancelDecision').click();
 
