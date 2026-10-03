@@ -8,6 +8,8 @@ class SentryFraudConsole {
     this.currentFilter = 'ALL';
     this.searchTerm = '';
     this.selectedTag = '';
+    this.pendingDecision = null;
+    this.decisionMinRationaleLength = 20;
     this.alerts = JSON.parse(JSON.stringify(SENTRY_DATA.alerts));
     this.auditLog = JSON.parse(JSON.stringify(SENTRY_DATA.auditLog));
 
@@ -47,9 +49,10 @@ class SentryFraudConsole {
       else if (e.key === '5') this.switchView('analytics');
       else if (e.key === '6') this.switchView('audit');
       // Tactical Decision hotkeys:
-      else if (e.key === 'b' || e.key === 'B') this.executeDecision('FROZEN', 'Account Blocked & Frozen by Analyst');
-      else if (e.key === 'a' || e.key === 'A') this.executeDecision('APPROVED', 'Transaction Approved by Analyst');
-      else if (e.key === 'v' || e.key === 'V') this.executeDecision('NEEDS_VERIFICATION', 'Step-up 2FA/Biometric Challenge Issued');
+      else if (e.key === 'b' || e.key === 'B') this.requestDecision('FROZEN');
+      else if (e.key === 'a' || e.key === 'A') this.requestDecision('APPROVED');
+      else if (e.key === 'v' || e.key === 'V') this.requestDecision('NEEDS_VERIFICATION');
+      else if (e.key === 'Escape' && this.pendingDecision) this.cancelPendingDecision('Pending decision cancelled.');
     });
   }
 
@@ -87,42 +90,53 @@ class SentryFraudConsole {
   }
 
   bindDecisionPanel() {
-    // Rationale tag buttons
+    const noteArea = document.getElementById('analystNoteInput');
+    const evidenceAck = document.getElementById('decisionEvidenceAck');
+    const confirmButton = document.getElementById('btnConfirmDecision');
+    const cancelButton = document.getElementById('btnCancelDecision');
+
+    // Rationale tag buttons classify the reason, but the tag itself never
+    // satisfies the human-authored rationale requirement.
     document.querySelectorAll('.tag-btn').forEach(tag => {
       tag.addEventListener('click', () => {
+        if (this.pendingDecision) this.cancelPendingDecision('Rationale changed — stage the action again.');
         document.querySelectorAll('.tag-btn').forEach(t => t.classList.remove('active'));
         tag.classList.add('active');
         this.selectedTag = tag.getAttribute('data-tag');
-        
-        const noteArea = document.getElementById('analystNoteInput');
+
         if (noteArea && !noteArea.value.includes(`[${this.selectedTag}]`)) {
-          noteArea.value = `[${this.selectedTag}] ` + noteArea.value;
+          noteArea.value = `[${this.selectedTag}] ` + noteArea.value.replace(/^\[[^\]]+\]\s*/, '');
         }
+        this.updateRationaleValidation();
       });
     });
 
-    // Decision action buttons
-    const btnFreeze = document.getElementById('btnActionFreeze');
-    const btnApprove = document.getElementById('btnActionApprove');
-    const btnStepUp = document.getElementById('btnActionStepUp');
-    const btnEscalate = document.getElementById('btnActionEscalate');
-    const btnFalsePositive = document.getElementById('btnActionFalsePositive');
+    if (noteArea) {
+      noteArea.addEventListener('input', () => {
+        if (this.pendingDecision) this.cancelPendingDecision('Rationale changed — stage the action again.');
+        this.updateRationaleValidation();
+      });
+    }
 
-    if (btnFreeze) {
-      btnFreeze.addEventListener('click', () => this.executeDecision('FROZEN', 'Account Frozen & Outbound Rail Air-Gapped'));
+    if (evidenceAck) {
+      evidenceAck.addEventListener('change', () => {
+        if (confirmButton) confirmButton.disabled = !evidenceAck.checked;
+      });
     }
-    if (btnApprove) {
-      btnApprove.addEventListener('click', () => this.executeDecision('APPROVED', 'Approved & Allowed to Settle'));
-    }
-    if (btnStepUp) {
-      btnStepUp.addEventListener('click', () => this.executeDecision('NEEDS_VERIFICATION', 'Out-of-band Step-up Verification Dispatched'));
-    }
-    if (btnEscalate) {
-      btnEscalate.addEventListener('click', () => this.executeDecision('ESCALATED', 'Escalated to Risk Supervisor for Sign-off'));
-    }
-    if (btnFalsePositive) {
-      btnFalsePositive.addEventListener('click', () => this.executeDecision('FALSE_POSITIVE', 'Marked False Positive & Sent to Model Tuning Loop'));
-    }
+    if (confirmButton) confirmButton.addEventListener('click', () => this.confirmPendingDecision());
+    if (cancelButton) cancelButton.addEventListener('click', () => this.cancelPendingDecision('Pending decision cancelled.'));
+
+    const actionMap = [
+      ['btnActionFreeze', 'FROZEN'],
+      ['btnActionApprove', 'APPROVED'],
+      ['btnActionStepUp', 'NEEDS_VERIFICATION'],
+      ['btnActionEscalate', 'ESCALATED'],
+      ['btnActionFalsePositive', 'FALSE_POSITIVE']
+    ];
+    actionMap.forEach(([id, verdict]) => {
+      const button = document.getElementById(id);
+      if (button) button.addEventListener('click', () => this.requestDecision(verdict));
+    });
   }
 
   renderAlertQueue() {
@@ -351,11 +365,19 @@ class SentryFraudConsole {
         : (alert.riskSpectrum.totalScore >= 50 ? 'score-dock-recommendation text-warning' : 'score-dock-recommendation text-clean');
     }
     
-    // Clear previous note input
+    // Reset decision drafting when the active alert changes. A committed
+    // decision is displayed read-only and cannot be silently overwritten.
+    this.pendingDecision = null;
+    this.selectedTag = '';
+    document.querySelectorAll('.tag-btn').forEach(t => t.classList.remove('active'));
     const noteArea = document.getElementById('analystNoteInput');
     if (noteArea) {
       noteArea.value = alert.analystDecision ? `[Resolved] ${alert.analystDecision}` : '';
+      noteArea.readOnly = this.isFinalDecisionStatus(alert.status);
     }
+    this.resetDecisionGuard();
+    this.updateRationaleValidation();
+    this.syncDecisionPanelState(alert);
   }
 
   renderRiskSpectrum(spectrum) {
@@ -445,38 +467,226 @@ class SentryFraudConsole {
     }
   }
 
-  executeDecision(verdict, defaultNote) {
+  isFinalDecisionStatus(status) {
+    return ['FROZEN', 'APPROVED', 'FALSE_POSITIVE', 'ESCALATED'].includes(status);
+  }
+
+  getDecisionLabel(verdict) {
+    return {
+      FROZEN: 'BLOCK & FREEZE',
+      APPROVED: 'APPROVE & ALLOW',
+      NEEDS_VERIFICATION: 'REQUEST STEP-UP 2FA',
+      ESCALATED: 'ESCALATE TO SUPERVISOR',
+      FALSE_POSITIVE: 'MARK FALSE POSITIVE'
+    }[verdict] || verdict;
+  }
+
+  getDecisionImpact(verdict) {
+    return {
+      FROZEN: 'High impact: blocks the transaction and freezes the account.',
+      APPROVED: 'High impact: allows the held transaction to proceed.',
+      NEEDS_VERIFICATION: 'Customer impact: requests an additional authentication step before release.',
+      ESCALATED: 'Workflow impact: transfers decision authority to a supervisor.',
+      FALSE_POSITIVE: 'Model impact: closes the alert as benign and sends the case to the tuning loop.'
+    }[verdict] || 'Review the consequence before committing this action.';
+  }
+
+  normalizeRationaleText(value) {
+    return (value || '').trim().replace(/^\[[^\]]+\]\s*/, '').trim();
+  }
+
+  validateDecisionRationale({ focus = false } = {}) {
+    const noteArea = document.getElementById('analystNoteInput');
+    const message = document.getElementById('rationaleValidationMessage');
+    const raw = noteArea ? noteArea.value.trim() : '';
+    const meaningful = this.normalizeRationaleText(raw);
+    const valid = meaningful.length >= this.decisionMinRationaleLength && !raw.startsWith('[Resolved]');
+
+    if (message) {
+      if (!meaningful) {
+        message.textContent = `Rationale required. Explain the evidence and reasoning in at least ${this.decisionMinRationaleLength} characters.`;
+        message.className = 'rationale-validation-message is-error';
+      } else if (!valid) {
+        message.textContent = `${meaningful.length}/${this.decisionMinRationaleLength} rationale characters — add the evidence and reasoning behind the action.`;
+        message.className = 'rationale-validation-message is-error';
+      } else {
+        message.textContent = `Rationale ready · ${meaningful.length} characters of analyst reasoning.`;
+        message.className = 'rationale-validation-message is-valid';
+      }
+    }
+
+    if (!valid && focus && noteArea) noteArea.focus();
+    return { valid, raw, meaningful };
+  }
+
+  updateRationaleValidation() {
+    this.validateDecisionRationale();
+  }
+
+  recommendationExpectedVerdict(recommendation) {
+    const rec = (recommendation || '').toUpperCase();
+    if (rec.includes('BLOCK') || rec.includes('FREEZE')) return 'FROZEN';
+    if (rec.includes('ALLOW') || rec.includes('APPROVE')) return 'APPROVED';
+    if (rec.includes('VERIFY') || rec.includes('STEP-UP') || rec.includes('2FA')) return 'NEEDS_VERIFICATION';
+    if (rec.includes('ESCALATE')) return 'ESCALATED';
+    if (rec.includes('FALSE POSITIVE')) return 'FALSE_POSITIVE';
+    return null;
+  }
+
+  resetDecisionGuard() {
+    const panel = document.getElementById('decisionConfirmPanel');
+    const ack = document.getElementById('decisionEvidenceAck');
+    const confirm = document.getElementById('btnConfirmDecision');
+    if (panel) panel.hidden = true;
+    if (ack) ack.checked = false;
+    if (confirm) confirm.disabled = true;
+    this.pendingDecision = null;
+  }
+
+  syncDecisionPanelState(alert) {
+    const locked = this.isFinalDecisionStatus(alert.status);
+    const status = document.getElementById('decisionSafetyStatus');
+    ['btnActionFreeze', 'btnActionApprove', 'btnActionStepUp', 'btnActionEscalate', 'btnActionFalsePositive'].forEach(id => {
+      const button = document.getElementById(id);
+      if (button) {
+        button.disabled = locked;
+        button.setAttribute('aria-disabled', String(locked));
+      }
+    });
+    if (status) {
+      status.textContent = locked
+        ? `Decision committed: ${alert.status.replaceAll('_', ' ')}. Select another pending alert to take a new action.`
+        : 'Rationale + evidence-review confirmation required before any decision is committed.';
+      status.className = `decision-safety-status ${locked ? 'is-locked' : ''}`;
+    }
+  }
+
+  cancelPendingDecision(message = '') {
+    this.resetDecisionGuard();
+    const alert = this.alerts.find(a => a.id === this.activeAlertId);
+    if (alert) this.syncDecisionPanelState(alert);
+    if (message) this.showToast(message);
+  }
+
+  requestDecision(verdict) {
     const alert = this.alerts.find(a => a.id === this.activeAlertId);
     if (!alert) return;
+    if (this.isFinalDecisionStatus(alert.status)) {
+      this.showToast(`Decision already committed for ${alert.id}. Select another pending alert.`);
+      this.syncDecisionPanelState(alert);
+      return;
+    }
 
-    const noteInput = document.getElementById('analystNoteInput');
-    const noteText = (noteInput && noteInput.value.trim()) ? noteInput.value.trim() : defaultNote;
+    const validation = this.validateDecisionRationale({ focus: true });
+    if (!validation.valid) {
+      this.showToast('Add a meaningful analyst rationale before staging this decision.');
+      return;
+    }
+
+    const expectedVerdict = this.recommendationExpectedVerdict(alert.riskSpectrum.recommendation);
+    const override = Boolean(expectedVerdict && expectedVerdict !== verdict);
+    this.pendingDecision = {
+      alertId: alert.id,
+      verdict,
+      rationale: validation.raw,
+      selectedTag: this.selectedTag,
+      recommendation: alert.riskSpectrum.recommendation,
+      override
+    };
+
+    const panel = document.getElementById('decisionConfirmPanel');
+    const title = document.getElementById('pendingDecisionTitle');
+    const impact = document.getElementById('pendingDecisionImpact');
+    const ack = document.getElementById('decisionEvidenceAck');
+    const confirm = document.getElementById('btnConfirmDecision');
+    const status = document.getElementById('decisionSafetyStatus');
+
+    if (title) title.textContent = `Confirm ${this.getDecisionLabel(verdict)}`;
+    if (impact) {
+      const overrideCopy = override
+        ? ` This overrides the model recommendation: ${alert.riskSpectrum.recommendation.replaceAll('_', ' ')}.`
+        : ` This is aligned with the current model recommendation: ${alert.riskSpectrum.recommendation.replaceAll('_', ' ')}.`;
+      impact.textContent = `${this.getDecisionImpact(verdict)}${overrideCopy}`;
+      impact.className = `decision-confirm-impact ${override ? 'is-override' : ''}`;
+    }
+    if (ack) ack.checked = false;
+    if (confirm) confirm.disabled = true;
+    if (panel) panel.hidden = false;
+    if (status) {
+      status.textContent = 'Decision staged — review impact, acknowledge the evidence review, then commit.';
+      status.className = 'decision-safety-status is-staged';
+    }
+  }
+
+  confirmPendingDecision() {
+    if (!this.pendingDecision) return;
+    const pending = this.pendingDecision;
+    const ack = document.getElementById('decisionEvidenceAck');
+    const validation = this.validateDecisionRationale({ focus: true });
+
+    if (pending.alertId !== this.activeAlertId) {
+      this.cancelPendingDecision('Active alert changed — stage the decision again.');
+      return;
+    }
+    if (!validation.valid || validation.raw !== pending.rationale) {
+      this.cancelPendingDecision('Rationale changed — stage the decision again.');
+      return;
+    }
+    if (!ack || !ack.checked) {
+      this.showToast('Confirm that you reviewed the alert evidence before committing.');
+      return;
+    }
+
+    this.executeDecision(pending.verdict, pending.rationale, pending);
+  }
+
+  executeDecision(verdict, noteText, context = {}) {
+    const alert = this.alerts.find(a => a.id === this.activeAlertId);
+    if (!alert) return false;
+    if (this.isFinalDecisionStatus(alert.status)) {
+      this.showToast(`Decision already committed for ${alert.id}.`);
+      return false;
+    }
+
+    const meaningful = this.normalizeRationaleText(noteText);
+    if (meaningful.length < this.decisionMinRationaleLength) {
+      this.showToast('Decision blocked: a meaningful analyst rationale is required.');
+      return false;
+    }
 
     alert.status = verdict;
-    alert.analystDecision = noteText;
+    alert.analystDecision = noteText.trim();
+    alert.decisionMeta = {
+      classification: context.selectedTag || this.selectedTag || null,
+      recommendation: context.recommendation || alert.riskSpectrum.recommendation,
+      recommendationOverride: Boolean(context.override),
+      evidenceReviewAcknowledged: true
+    };
 
-    // Log in Audit Trail
+    const rationaleParts = [alert.analystDecision];
+    if (alert.decisionMeta.classification) rationaleParts.push(`Classification: ${alert.decisionMeta.classification}`);
+    if (alert.decisionMeta.recommendationOverride) rationaleParts.push(`Override of recommendation: ${alert.decisionMeta.recommendation}`);
+
     const newAudit = {
       id: `AUD-${Math.floor(10000 + Math.random() * 90000)}`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
       actor: `${SENTRY_DATA.systemMetrics.analyst} (${SENTRY_DATA.systemMetrics.analystRole})`,
       entity: `${alert.id} / ${alert.customer.id}`,
       action: verdict,
-      rationale: noteText,
+      rationale: rationaleParts.join(' · '),
       verdict: verdict === 'FROZEN' ? 'CONFIRMED_FRAUD' : (verdict === 'APPROVED' ? 'ALLOWED_CLEAN' : verdict),
       riskScoreAfter: alert.riskSpectrum.totalScore
     };
 
     this.auditLog.unshift(newAudit);
-
-    this.showToast(`Case ${alert.id} resolved: ${verdict} recorded in immutable audit log.`);
+    this.resetDecisionGuard();
+    this.showToast(`Case ${alert.id} resolved: ${verdict} recorded with analyst rationale.`);
 
     this.renderAlertQueue();
     this.renderActiveAlert();
     this.renderAuditLog();
     this.updateHeaderCounters();
 
-    // Auto advance to next pending high-risk alert
     const nextAlert = this.alerts.find(a => a.status === 'HIGH_RISK' || a.status === 'RULE_CONFLICT' || a.status === 'NEEDS_VERIFICATION');
     if (nextAlert && nextAlert.id !== alert.id) {
       setTimeout(() => {
@@ -485,6 +695,7 @@ class SentryFraudConsole {
         this.renderActiveAlert();
       }, 400);
     }
+    return true;
   }
 
   renderRulesEngine() {

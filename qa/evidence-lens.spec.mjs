@@ -61,6 +61,61 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await page.screenshot({ path: 'qa-artifacts/sentry-truthful-analytics.png', fullPage: true });
 });
 
+test('Sentry decision safety requires rationale, review acknowledgement and second-step commit', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
+
+  const note = page.locator('#analystNoteInput');
+  const guard = page.locator('#decisionConfirmPanel');
+  const validation = page.locator('#rationaleValidationMessage');
+  const statusBadge = page.locator('#evidenceStateBadge');
+
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  // A destructive hotkey cannot commit or even stage without human rationale.
+  await page.keyboard.press('b');
+  await expect(validation).toContainText('Rationale required');
+  await expect(guard).toBeHidden();
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  await note.fill('Reviewed device spoofing, impossible travel and the newly added beneficiary.');
+  await page.keyboard.press('b');
+
+  // Hotkey now stages the decision; it still cannot commit in one step.
+  await expect(guard).toBeVisible();
+  await expect(page.locator('#pendingDecisionTitle')).toContainText('BLOCK & FREEZE');
+  await expect(page.locator('#btnConfirmDecision')).toBeDisabled();
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  await page.locator('#decisionEvidenceAck').check();
+  await expect(page.locator('#btnConfirmDecision')).toBeEnabled();
+  await page.locator('#btnConfirmDecision').click();
+
+  // The immutable audit trail keeps the analyst's actual rationale, not a default note.
+  await expect(page.locator('#auditLogTableBody')).toContainText('Reviewed device spoofing, impossible travel and the newly added beneficiary.');
+  await expect(page.locator('#auditLogTableBody')).toContainText('FROZEN');
+
+  // Re-opening the committed alert locks decision controls against silent overwrite.
+  await page.evaluate(() => {
+    window.sentryConsole.activeAlertId = 'ALT-8921';
+    window.sentryConsole.switchView('queue');
+    window.sentryConsole.renderAlertQueue();
+    window.sentryConsole.renderActiveAlert();
+  });
+  await expect(page.locator('#btnActionFreeze')).toBeDisabled();
+  await expect(page.locator('#decisionSafetyStatus')).toContainText('Decision committed: FROZEN');
+
+  // A decision that conflicts with the model recommendation is visibly flagged.
+  await page.locator('.queue-alert-card', { hasText: 'ALT-8920' }).click();
+  await note.fill('Travel evidence is plausible, but the unresolved policy conflict requires a supervisor-safe containment choice.');
+  await page.locator('#btnActionFreeze').click();
+  await expect(page.locator('#pendingDecisionImpact')).toContainText('overrides the model recommendation');
+  await page.locator('#btnCancelDecision').click();
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-decision-safety.png', fullPage: true });
+});
+
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
   const status = JSON.parse(await fs.readFile('research/validation/sentry-round-01/status.json', 'utf8'));
   expect(status.status).toBe('READY_TO_RECRUIT');

@@ -284,7 +284,26 @@
               <button class="tag-btn" data-tag="Friendly Fraud">Friendly Fraud</button>
               <button class="tag-btn" data-tag="Legitimate Travel">Legit Travel</button>
             </div>
-            <textarea class="analyst-note-textarea" id="analystNoteInput" placeholder="Document investigative rationale before committing high-stakes decision..."></textarea>
+            <textarea class="analyst-note-textarea" id="analystNoteInput" aria-describedby="rationaleValidationMessage" placeholder="Explain the evidence reviewed and why this action is justified..."></textarea>
+            <div class="rationale-validation-message" id="rationaleValidationMessage" role="status" aria-live="polite">Explain the evidence and reasoning in at least 20 characters. Classification tags do not count as rationale.</div>
+          </div>
+
+          <!-- Decision Safety Gate -->
+          <div class="decision-safety-status" id="decisionSafetyStatus" role="status" aria-live="polite">
+            Rationale + evidence-review confirmation required before any decision is committed.
+          </div>
+          <div class="decision-confirm-panel" id="decisionConfirmPanel" hidden>
+            <div class="decision-confirm-eyebrow">SECOND-STEP CONFIRMATION</div>
+            <div class="decision-confirm-title" id="pendingDecisionTitle">Confirm decision</div>
+            <div class="decision-confirm-impact" id="pendingDecisionImpact"></div>
+            <label class="decision-ack-row" for="decisionEvidenceAck">
+              <input type="checkbox" id="decisionEvidenceAck">
+              <span>I reviewed the evidence, triggered rules and customer context for this alert.</span>
+            </label>
+            <div class="decision-confirm-actions">
+              <button class="decision-confirm-btn secondary" id="btnCancelDecision" type="button">Cancel</button>
+              <button class="decision-confirm-btn primary" id="btnConfirmDecision" type="button" disabled>Commit decision</button>
+            </div>
           </div>
 
           <!-- Audit Compliance Stamp -->
