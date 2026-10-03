@@ -61,6 +61,62 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await page.screenshot({ path: 'qa-artifacts/sentry-truthful-analytics.png', fullPage: true });
 });
 
+test('Sentry navigation exposes shareable routes and restores view + alert context', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html#queue/ALT-8920`, { waitUntil: 'domcontentloaded' });
+
+  await expect(page).toHaveURL(/index\.html#queue\/ALT-8920$/);
+  await expect(page.locator('#view-queue')).toHaveClass(/active/);
+  await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8920');
+  await expect(page.locator('.queue-alert-card.active')).toContainText('ALT-8920');
+  await expect(page.locator('.nav-tab[data-view="queue"]')).toHaveAttribute('aria-current', 'page');
+  await expect(page).toHaveTitle(/Alert Queue · ALT-8920/);
+
+  await page.getByRole('button', { name: /Analytics/ }).click();
+  await expect(page).toHaveURL(/#analytics$/);
+  await expect(page.locator('#view-analytics')).toHaveClass(/active/);
+  await expect(page.locator('.nav-tab[data-view="analytics"]')).toHaveAttribute('aria-current', 'page');
+
+  await page.getByRole('button', { name: /Audit Log/ }).click();
+  await expect(page).toHaveURL(/#audit$/);
+  await expect(page.locator('#view-audit')).toHaveClass(/active/);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#analytics$/);
+  await expect(page.locator('#view-analytics')).toHaveClass(/active/);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#queue\/ALT-8920$/);
+  await expect(page.locator('#view-queue')).toHaveClass(/active/);
+  await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8920');
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/#queue\/ALT-8920$/);
+  await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8920');
+
+  // Staged high-impact decisions must not survive a navigation context change.
+  await page.locator('#analystNoteInput').fill('Reviewed the travel context and device evidence before staging a containment decision.');
+  await page.locator('#btnActionFreeze').click();
+  await expect(page.locator('#decisionConfirmPanel')).toBeVisible();
+  await page.getByRole('button', { name: /Analytics/ }).click();
+  expect(await page.evaluate(() => window.sentryConsole.pendingDecision)).toBeNull();
+  await expect(page).toHaveURL(/#analytics$/);
+
+  // Malformed or unknown entity routes are canonicalized instead of leaving stale UI/URL state.
+  await page.goto(`${baseURL}/index.html#queue/ALT-DOES-NOT-EXIST`, { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/#queue\/ALT-8921$/);
+  await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8921');
+
+  // Existing view entrypoints derive their canonical view from the pathname.
+  await page.goto(`${baseURL}/cases.html`, { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/cases\.html#cases$/);
+  await expect(page.locator('#view-cases')).toHaveClass(/active/);
+  await expect(page.locator('.nav-tab[data-view="cases"]')).toHaveAttribute('aria-current', 'page');
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-navigation-deeplink.png', fullPage: true });
+});
+
 test('Sentry decision safety requires rationale, review acknowledgement and second-step commit', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
