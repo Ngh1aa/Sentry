@@ -31,8 +31,9 @@ test('Sentry evidence lens exposes decision pins, baseline, tour and operational
 
 test('Sentry analytics keeps simulated outcomes inside the evidence boundary', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(`${baseURL}/analytics.html`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => document.documentElement.dataset.sentryReady === 'analytics');
+  await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: /Analytics/ }).click();
+  await expect(page.locator('#view-analytics')).toHaveClass(/active/);
 
   const metrics = page.locator('#analyticsMetrics');
   await expect(metrics).toContainText('EVIDENCE STATUS');
