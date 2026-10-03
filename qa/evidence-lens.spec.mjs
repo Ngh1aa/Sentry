@@ -29,6 +29,38 @@ test('Sentry evidence lens exposes decision pins, baseline, tour and operational
   await page.screenshot({ path: 'qa-artifacts/sentry-evidence-lens.png', fullPage: true });
 });
 
+test('Sentry analytics keeps simulated outcomes inside the evidence boundary', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: /Analytics/ }).click();
+
+  // Assert the mounted secondary workspace, because it is the runtime source-of-truth.
+  const analyticsView = page.locator('#view-analytics');
+  await expect(analyticsView).toHaveClass(/active/);
+  await expect(analyticsView).toContainText('Evidence status');
+  await expect(analyticsView).toContainText('0 verified DIRECT_USER · 0 verified PROXY sessions');
+  await expect(analyticsView).toContainText('Prevented fraud loss');
+  await expect(analyticsView).toContainText('NOT MEASURED');
+  await expect(analyticsView).toContainText(/Synthetic|synthetic/);
+
+  // Guard both the legacy base renderer and the richer secondary workspace claims.
+  await expect(analyticsView).not.toContainText('$1,842,900');
+  await expect(analyticsView).not.toContainText('99.4% precision');
+  await expect(analyticsView).not.toContainText('Reduced from 18.2 min');
+  await expect(analyticsView).not.toContainText('$1.84M');
+  await expect(analyticsView).not.toContainText('2.1%');
+  await expect(analyticsView).not.toContainText('3.4m');
+  await expect(analyticsView).not.toContainText('18% after split-workspace rollout');
+
+  const kpis = page.locator('.sentry-kpi-strip');
+  await expect(kpis).toContainText('Decision Time Evidence:');
+  await expect(kpis).toContainText('False Positive Evidence:');
+  await expect(kpis).toContainText('Not measured');
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-truthful-analytics.png', fullPage: true });
+});
+
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
   const status = JSON.parse(await fs.readFile('research/validation/sentry-round-01/status.json', 'utf8'));
   expect(status.status).toBe('READY_TO_RECRUIT');

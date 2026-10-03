@@ -539,26 +539,34 @@ class SentryFraudConsole {
     const container = document.getElementById('analyticsMetrics');
     if (!container) return;
 
+    // P0-B evidence boundary: these cards describe what the product would measure.
+    // They must not present simulated scenario values as validated product outcomes
+    // until compatible post-change DIRECT_USER / PROXY or operational evidence exists.
     container.innerHTML = `
       <div class="analytics-stat-card">
-        <div class="analytics-lbl">FRAUD LOSSES PREVENTED (30D)</div>
-        <div class="analytics-val mono text-clean">$1,842,900 USD</div>
-        <div class="analytics-sub mono">99.4% precision on high-confidence blocks</div>
+        <div class="analytics-lbl">EVIDENCE STATUS</div>
+        <div class="analytics-val mono text-warning">NOT MEASURED</div>
+        <div class="analytics-sub mono">0 verified DIRECT_USER · 0 verified PROXY sessions</div>
+      </div>
+      <div class="analytics-stat-card">
+        <div class="analytics-lbl">PREVENTED FRAUD LOSS</div>
+        <div class="analytics-val mono">NOT MEASURED</div>
+        <div class="analytics-sub mono">Requires compatible post-change operational evidence</div>
       </div>
       <div class="analytics-stat-card">
         <div class="analytics-lbl">FALSE POSITIVE RATE</div>
-        <div class="analytics-val mono">${SENTRY_DATA.systemMetrics.falsePositiveRate}</div>
-        <div class="analytics-sub mono">Benchmark target < 3.0%</div>
+        <div class="analytics-val mono">NOT MEASURED</div>
+        <div class="analytics-sub mono">Prototype dataset values are scenario-only, not validated outcomes</div>
       </div>
       <div class="analytics-stat-card">
-        <div class="analytics-lbl">MEAN TIME TO DECIDE (MTTD)</div>
-        <div class="analytics-val mono">${SENTRY_DATA.systemMetrics.mttrMinutes} min</div>
-        <div class="analytics-sub mono">Reduced from 18.2 min via Split Workspace</div>
+        <div class="analytics-lbl">MEAN TIME TO DECIDE</div>
+        <div class="analytics-val mono">NOT MEASURED</div>
+        <div class="analytics-sub mono">No validated baseline or post-change timing evidence yet</div>
       </div>
       <div class="analytics-stat-card">
         <div class="analytics-lbl">RULE CONFLICT INCIDENCE</div>
-        <div class="analytics-val mono text-warning">1.4%</div>
-        <div class="analytics-sub mono">2 rules pending supervisor de-duplication</div>
+        <div class="analytics-val mono text-warning">SCENARIO ONLY</div>
+        <div class="analytics-sub mono">Synthetic dataset for prototype stress testing · not production telemetry</div>
       </div>
     `;
   }
