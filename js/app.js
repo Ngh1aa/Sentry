@@ -48,11 +48,23 @@ class SentryFraudConsole {
       else if (e.key === '4') this.switchView('customers');
       else if (e.key === '5') this.switchView('analytics');
       else if (e.key === '6') this.switchView('audit');
-      // Tactical Decision hotkeys:
-      else if (e.key === 'b' || e.key === 'B') this.requestDecision('FROZEN');
-      else if (e.key === 'a' || e.key === 'A') this.requestDecision('APPROVED');
-      else if (e.key === 'v' || e.key === 'V') this.requestDecision('NEEDS_VERIFICATION');
-      else if (e.key === 'Escape' && this.pendingDecision) this.cancelPendingDecision('Pending decision cancelled.');
+      // Tactical decision hotkeys are scoped to the investigation queue.
+      // preventDefault() is required because validation may focus the rationale
+      // textarea during keydown; without it, the shortcut key itself is typed
+      // into the rationale field after the guard blocks the action.
+      else if (this.currentView === 'queue' && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        this.requestDecision('FROZEN');
+      } else if (this.currentView === 'queue' && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        this.requestDecision('APPROVED');
+      } else if (this.currentView === 'queue' && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        this.requestDecision('NEEDS_VERIFICATION');
+      } else if (this.currentView === 'queue' && e.key === 'Escape' && this.pendingDecision) {
+        e.preventDefault();
+        this.cancelPendingDecision('Pending decision cancelled.');
+      }
     });
   }
 
