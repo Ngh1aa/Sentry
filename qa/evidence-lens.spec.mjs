@@ -34,7 +34,6 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: /Analytics/ }).click();
 
-  // Assert the mounted secondary workspace, because it is the runtime source-of-truth.
   const analyticsView = page.locator('#view-analytics');
   await expect(analyticsView).toHaveClass(/active/);
   await expect(analyticsView).toContainText('Evidence status');
@@ -43,7 +42,6 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await expect(analyticsView).toContainText('NOT MEASURED');
   await expect(analyticsView).toContainText(/Synthetic|synthetic/);
 
-  // Guard both the legacy base renderer and the richer secondary workspace claims.
   await expect(analyticsView).not.toContainText('$1,842,900');
   await expect(analyticsView).not.toContainText('99.4% precision');
   await expect(analyticsView).not.toContainText('Reduced from 18.2 min');
@@ -94,7 +92,6 @@ test('Sentry navigation exposes shareable routes and restores view + alert conte
   await expect(page).toHaveURL(/#queue\/ALT-8920$/);
   await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8920');
 
-  // Staged high-impact decisions must not survive a navigation context change.
   await page.locator('#analystNoteInput').fill('Reviewed the travel context and device evidence before staging a containment decision.');
   await page.locator('#btnActionFreeze').click();
   await expect(page.locator('#decisionConfirmPanel')).toBeVisible();
@@ -102,13 +99,10 @@ test('Sentry navigation exposes shareable routes and restores view + alert conte
   expect(await page.evaluate(() => window.sentryConsole.pendingDecision)).toBeNull();
   await expect(page).toHaveURL(/#analytics$/);
 
-  // Use a new document load so this verifies a true direct invalid deep-link,
-  // not a same-document fragment change that intentionally preserves the current alert context.
   await page.goto(`${baseURL}/index.html?route-case=invalid#queue/ALT-DOES-NOT-EXIST`, { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/#queue\/ALT-8921$/);
   await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8921');
 
-  // Existing view entrypoints derive their canonical view from the pathname.
   await page.goto(`${baseURL}/cases.html`, { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/cases\.html#cases$/);
   await expect(page.locator('#view-cases')).toHaveClass(/active/);
@@ -138,7 +132,6 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   expect(bypassResult).toBe(false);
   await expect(statusBadge).toContainText('HIGH RISK');
 
-  // A destructive hotkey cannot commit, stage, or leak its key into rationale.
   await page.keyboard.press('b');
   await expect(note).toHaveValue('');
   await expect(validation).toContainText('Rationale required');
@@ -149,7 +142,6 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await note.evaluate(element => element.blur());
   await page.keyboard.press('b');
 
-  // Hotkey now stages the decision after the analyst leaves the text field; it still cannot commit in one step.
   await expect(guard).toBeVisible();
   await expect(page.locator('#pendingDecisionTitle')).toContainText('BLOCK & FREEZE');
   await expect(page.locator('#btnConfirmDecision')).toBeDisabled();
@@ -159,13 +151,11 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await expect(page.locator('#btnConfirmDecision')).toBeEnabled();
   await page.locator('#btnConfirmDecision').click();
 
-  // The mounted Audit workspace reads consoleApp.auditLog and must show the real analyst rationale.
   await page.locator('.nav-tab[data-view="audit"]').click();
   const auditWorkspace = page.locator('#opsAuditRoot');
   await expect(auditWorkspace).toContainText(rationale);
   await expect(auditWorkspace).toContainText('FROZEN');
 
-  // Re-opening the committed alert locks decision controls against silent overwrite.
   await page.evaluate(() => {
     window.sentryConsole.activeAlertId = 'ALT-8921';
     window.sentryConsole.switchView('queue');
@@ -183,7 +173,6 @@ test('Sentry decision safety visibly flags a model recommendation override', asy
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
 
-  // Fresh page state avoids contamination from the post-commit auto-advance timer.
   const recommendation = await page.evaluate(() => {
     window.sentryConsole.activeAlertId = 'ALT-8920';
     window.sentryConsole.switchView('queue');
@@ -213,10 +202,11 @@ test('Sentry primary investigation remains keyboard-operable with visible focus 
   const rationale = page.getByRole('textbox', { name: 'Mandatory analyst rationale' });
   const queue = page.getByRole('listbox', { name: 'Investigation alerts' });
   const options = queue.getByRole('option');
+  const sourceAlertCount = await page.evaluate(() => window.sentryConsole.alerts.length);
 
   await expect(search).toBeVisible();
   await expect(rationale).toBeVisible();
-  await expect(options).toHaveCount(5);
+  await expect(options).toHaveCount(sourceAlertCount);
   await expect(options.nth(0)).toHaveAttribute('aria-selected', 'true');
   await expect(options.nth(0)).toHaveAttribute('tabindex', '0');
   await expect(options.nth(1)).toHaveAttribute('tabindex', '-1');
