@@ -205,6 +205,59 @@ test('Sentry decision safety visibly flags a model recommendation override', asy
   await page.screenshot({ path: 'qa-artifacts/sentry-decision-override.png', fullPage: true });
 });
 
+test('Sentry primary investigation remains keyboard-operable with visible focus and announced context', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html#queue/ALT-8921`, { waitUntil: 'domcontentloaded' });
+
+  const search = page.getByRole('textbox', { name: 'Search investigation alerts' });
+  const rationale = page.getByRole('textbox', { name: 'Mandatory analyst rationale' });
+  const queue = page.getByRole('listbox', { name: 'Investigation alerts' });
+  const options = queue.getByRole('option');
+
+  await expect(search).toBeVisible();
+  await expect(rationale).toBeVisible();
+  await expect(options).toHaveCount(5);
+  await expect(options.nth(0)).toHaveAttribute('aria-selected', 'true');
+  await expect(options.nth(0)).toHaveAttribute('tabindex', '0');
+  await expect(options.nth(1)).toHaveAttribute('tabindex', '-1');
+  await expect(options.nth(0)).toHaveAttribute('aria-label', /ALT-8921, Eleanor Vance/);
+
+  await options.nth(0).focus();
+  const outlineStyle = await options.nth(0).evaluate(element => getComputedStyle(element).outlineStyle);
+  const outlineWidth = await options.nth(0).evaluate(element => getComputedStyle(element).outlineWidth);
+  expect(outlineStyle).not.toBe('none');
+  expect(parseFloat(outlineWidth)).toBeGreaterThanOrEqual(2);
+
+  await page.keyboard.press('ArrowDown');
+  await expect(page).toHaveURL(/#queue\/ALT-8920$/);
+  await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8920');
+  await expect(queue.getByRole('option', { name: /ALT-8920/ })).toBeFocused();
+  await expect(queue.getByRole('option', { name: /ALT-8920/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#alertSelectionStatus')).toContainText('Selected alert ALT-8920');
+  await expect(page.locator('#alertSelectionStatus')).toContainText('Marcus Aurelius Thorne');
+
+  await page.keyboard.press('End');
+  const lastOption = queue.getByRole('option').last();
+  await expect(lastOption).toBeFocused();
+  const lastAlertId = await lastOption.locator('.alert-card-id').textContent();
+  await expect(page.locator('#evidenceAlertId')).toHaveText(lastAlertId?.trim() || '');
+
+  await page.keyboard.press('Home');
+  await expect(queue.getByRole('option').first()).toBeFocused();
+  await page.keyboard.press(' ');
+  await expect(queue.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
+
+  const allFilter = page.getByRole('button', { name: 'All' });
+  const highRiskFilter = page.getByRole('button', { name: 'High Risk' });
+  await expect(allFilter).toHaveAttribute('aria-pressed', 'true');
+  await highRiskFilter.click();
+  await expect(highRiskFilter).toHaveAttribute('aria-pressed', 'true');
+  await expect(allFilter).toHaveAttribute('aria-pressed', 'false');
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-keyboard-accessibility.png', fullPage: true });
+});
+
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
   const status = JSON.parse(await fs.readFile('research/validation/sentry-round-01/status.json', 'utf8'));
   expect(status.status).toBe('READY_TO_RECRUIT');
