@@ -10,9 +10,12 @@ class SentryFraudConsole {
     this.selectedTag = '';
     this.pendingDecision = null;
     this.decisionMinRationaleLength = 20;
+    this.routableViews = new Set(['queue', 'cases', 'rules', 'customers', 'analytics', 'audit']);
+    this.routeSyncMuted = false;
     this.alerts = JSON.parse(JSON.stringify(SENTRY_DATA.alerts));
     this.auditLog = JSON.parse(JSON.stringify(SENTRY_DATA.auditLog));
 
+    this.hydrateRouteState();
     this.init();
   }
 
@@ -28,6 +31,8 @@ class SentryFraudConsole {
     this.renderAnalytics();
     this.renderCustomers();
     this.updateHeaderCounters();
+    this.switchView(this.currentView, { syncRoute: false });
+    this.syncRoute({ replace: true });
   }
 
   bindNavigation() {
@@ -37,6 +42,10 @@ class SentryFraudConsole {
         this.switchView(view);
       });
     });
+
+    const restoreRoute = () => this.applyRouteFromLocation();
+    window.addEventListener('popstate', restoreRoute);
+    window.addEventListener('hashchange', restoreRoute);
 
     // Keyboard shortcuts for fraud analysts: [1]-[6]
     window.addEventListener('keydown', (e) => {
@@ -68,16 +77,155 @@ class SentryFraudConsole {
     });
   }
 
-  switchView(viewId) {
-    this.currentView = viewId;
+  routeFallbackView() {
+    const file = window.location.pathname.split('/').pop().toLowerCase();
+    const routeByFile = {
+      'cases.html': 'cases',
+      'rules.html': 'rules',
+      'customers.html': 'customers',
+      'analytics.html': 'analytics',
+      'audit.html': 'audit'
+    };
+    return routeByFile[file] || 'queue';
+  }
+
+  readRouteState() {
+    const fallbackView = this.routeFallbackView();
+    const fallbackAlertId = this.alerts.some(alert => alert.id === this.activeAlertId)
+      ? this.activeAlertId
+      : this.alerts[0]?.id;
+    const rawHash = window.location.hash.replace(/^#/, '').trim();
+
+    if (!rawHash) {
+      return {
+        view: fallbackView,
+        alertId: fallbackView === 'queue' ? fallbackAlertId : null,
+        valid: true
+      };
+    }
+
+    let parts;
+    try {
+      parts = rawHash.split('/').filter(Boolean).map(part => decodeURIComponent(part));
+    } catch (error) {
+      return { view: 'queue', alertId: fallbackAlertId, valid: false };
+    }
+
+    const requestedView = (parts[0] || '').toLowerCase();
+    if (!this.routableViews.has(requestedView)) {
+      return { view: 'queue', alertId: fallbackAlertId, valid: false };
+    }
+
+    if (requestedView !== 'queue') {
+      return {
+        view: requestedView,
+        alertId: null,
+        valid: parts.length === 1
+      };
+    }
+
+    const requestedAlertId = parts[1] || fallbackAlertId;
+    const alertExists = this.alerts.some(alert => alert.id === requestedAlertId);
+    return {
+      view: 'queue',
+      alertId: alertExists ? requestedAlertId : fallbackAlertId,
+      valid: parts.length <= 2 && alertExists
+    };
+  }
+
+  hydrateRouteState() {
+    const route = this.readRouteState();
+    this.currentView = route.view;
+    if (route.view === 'queue' && route.alertId) this.activeAlertId = route.alertId;
+  }
+
+  routeHash(viewId = this.currentView, alertId = this.activeAlertId) {
+    if (viewId === 'queue') {
+      const safeAlertId = this.alerts.some(alert => alert.id === alertId)
+        ? alertId
+        : this.alerts[0]?.id;
+      return `#queue/${encodeURIComponent(safeAlertId || '')}`;
+    }
+    return `#${viewId}`;
+  }
+
+  syncRoute({ replace = false } = {}) {
+    if (this.routeSyncMuted) return;
+    const nextHash = this.routeHash();
+    if (window.location.hash === nextHash) {
+      this.updateDocumentTitle();
+      return;
+    }
+
+    const method = replace ? 'replaceState' : 'pushState';
+    window.history[method](
+      { sentryView: this.currentView, alertId: this.currentView === 'queue' ? this.activeAlertId : null },
+      '',
+      `${window.location.pathname}${window.location.search}${nextHash}`
+    );
+    this.updateDocumentTitle();
+  }
+
+  applyRouteFromLocation() {
+    const route = this.readRouteState();
+    const previousView = this.currentView;
+    const previousAlertId = this.activeAlertId;
+
+    this.routeSyncMuted = true;
+    if (this.pendingDecision && (route.view !== 'queue' || route.alertId !== this.activeAlertId)) {
+      this.cancelPendingDecision('Pending decision cancelled because navigation context changed.');
+    }
+
+    if (route.view === 'queue' && route.alertId) this.activeAlertId = route.alertId;
+    this.switchView(route.view, { syncRoute: false });
+
+    if (route.view === 'queue' && (previousView !== 'queue' || previousAlertId !== this.activeAlertId)) {
+      this.renderAlertQueue();
+      this.renderActiveAlert();
+    }
+    this.routeSyncMuted = false;
+
+    const canonicalHash = this.routeHash();
+    if (!route.valid || window.location.hash !== canonicalHash) {
+      this.syncRoute({ replace: true });
+    } else {
+      this.updateDocumentTitle();
+    }
+  }
+
+  updateDocumentTitle() {
+    const labels = {
+      queue: 'Alert Queue',
+      cases: 'Cases',
+      rules: 'Rules Engine',
+      customers: 'Customers',
+      analytics: 'Analytics',
+      audit: 'Audit Log'
+    };
+    const context = this.currentView === 'queue' ? ` · ${this.activeAlertId}` : '';
+    document.title = `SENTRY — ${labels[this.currentView] || 'Fraud & Risk Operations Console'}${context}`;
+  }
+
+  switchView(viewId, { syncRoute = true, replaceRoute = false } = {}) {
+    const nextView = this.routableViews.has(viewId) ? viewId : 'queue';
+    if (this.pendingDecision && this.currentView === 'queue' && nextView !== 'queue') {
+      this.cancelPendingDecision('Pending decision cancelled because you left the investigation queue.');
+    }
+    this.currentView = nextView;
 
     document.querySelectorAll('.nav-tab').forEach(tab => {
-      tab.classList.toggle('active', tab.getAttribute('data-view') === viewId);
+      const active = tab.getAttribute('data-view') === nextView;
+      tab.classList.toggle('active', active);
+      if (active) tab.setAttribute('aria-current', 'page');
+      else tab.removeAttribute('aria-current');
     });
 
     document.querySelectorAll('.console-view').forEach(view => {
-      view.classList.toggle('active', view.id === `view-${viewId}`);
+      view.classList.toggle('active', view.id === `view-${nextView}`);
     });
+
+    this.updateDocumentTitle();
+    if (syncRoute) this.syncRoute({ replace: replaceRoute });
   }
 
   bindFilters() {
@@ -220,6 +368,7 @@ class SentryFraudConsole {
         this.activeAlertId = alert.id;
         this.renderAlertQueue();
         this.renderActiveAlert();
+        this.syncRoute();
       });
 
       container.appendChild(card);
@@ -713,6 +862,7 @@ class SentryFraudConsole {
         this.activeAlertId = nextAlert.id;
         this.renderAlertQueue();
         this.renderActiveAlert();
+        this.syncRoute({ replace: true });
       }, 400);
     }
     return true;
