@@ -80,8 +80,9 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   expect(bypassResult).toBe(false);
   await expect(statusBadge).toContainText('HIGH RISK');
 
-  // A destructive hotkey cannot commit or even stage without human rationale.
+  // A destructive hotkey cannot commit, stage, or leak its key into rationale.
   await page.keyboard.press('b');
+  await expect(note).toHaveValue('');
   await expect(validation).toContainText('Rationale required');
   await expect(guard).toBeHidden();
   await expect(statusBadge).toContainText('HIGH RISK');
