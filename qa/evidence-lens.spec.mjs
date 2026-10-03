@@ -237,8 +237,8 @@ test('Sentry primary investigation remains keyboard-operable with visible focus 
   await page.keyboard.press(' ');
   await expect(queue.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
 
-  const allFilter = page.getByRole('button', { name: 'All' });
-  const highRiskFilter = page.getByRole('button', { name: 'High Risk' });
+  const allFilter = page.locator('.filter-btn[data-filter="ALL"]');
+  const highRiskFilter = page.locator('.filter-btn[data-filter="HIGH_RISK"]');
   await expect(allFilter).toHaveAttribute('aria-pressed', 'true');
   await highRiskFilter.click();
   await expect(highRiskFilter).toHaveAttribute('aria-pressed', 'true');
