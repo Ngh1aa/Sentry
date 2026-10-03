@@ -33,23 +33,26 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: /Analytics/ }).click();
-  await expect(page.locator('#view-analytics')).toHaveClass(/active/);
 
-  const metrics = page.locator('#analyticsMetrics');
-  await expect(metrics).toContainText('EVIDENCE STATUS');
-  await expect(metrics).toContainText('0 verified DIRECT_USER · 0 verified PROXY sessions');
-  await expect(metrics).toContainText('PREVENTED FRAUD LOSS');
-  await expect(metrics).toContainText('NOT MEASURED');
-  await expect(metrics).toContainText('SCENARIO ONLY');
+  const analyticsView = page.locator('#view-analytics');
+  await expect(analyticsView).toHaveClass(/active/);
+  await expect(analyticsView).toContainText('EVIDENCE STATUS');
+  await expect(analyticsView).toContainText('0 verified DIRECT_USER · 0 verified PROXY sessions');
+  await expect(analyticsView).toContainText('PREVENTED FRAUD LOSS');
+  await expect(analyticsView).toContainText('NOT MEASURED');
+  await expect(analyticsView).toContainText('SCENARIO ONLY');
 
-  await expect(metrics).not.toContainText('$1,842,900');
-  await expect(metrics).not.toContainText('99.4% precision');
-  await expect(metrics).not.toContainText('Reduced from 18.2 min');
+  await expect(analyticsView).not.toContainText('$1,842,900');
+  await expect(analyticsView).not.toContainText('99.4% precision');
+  await expect(analyticsView).not.toContainText('Reduced from 18.2 min');
 
   const kpis = page.locator('.sentry-kpi-strip');
   await expect(kpis).toContainText('Decision Time Evidence:');
   await expect(kpis).toContainText('False Positive Evidence:');
   await expect(kpis).toContainText('Not measured');
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-truthful-analytics.png', fullPage: true });
 });
 
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
