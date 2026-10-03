@@ -102,8 +102,9 @@ test('Sentry navigation exposes shareable routes and restores view + alert conte
   expect(await page.evaluate(() => window.sentryConsole.pendingDecision)).toBeNull();
   await expect(page).toHaveURL(/#analytics$/);
 
-  // Malformed or unknown entity routes are canonicalized instead of leaving stale UI/URL state.
-  await page.goto(`${baseURL}/index.html#queue/ALT-DOES-NOT-EXIST`, { waitUntil: 'domcontentloaded' });
+  // Use a new document load so this verifies a true direct invalid deep-link,
+  // not a same-document fragment change that intentionally preserves the current alert context.
+  await page.goto(`${baseURL}/index.html?route-case=invalid#queue/ALT-DOES-NOT-EXIST`, { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/#queue\/ALT-8921$/);
   await expect(page.locator('#evidenceAlertId')).toHaveText('ALT-8921');
 
