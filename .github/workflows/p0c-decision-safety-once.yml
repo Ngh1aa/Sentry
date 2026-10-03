@@ -1,0 +1,35 @@
+name: P0-C Decision Safety One-Shot
+
+on:
+  push:
+    branches:
+      - fix/p0c-decision-safety
+    paths:
+      - ".github/workflows/p0c-decision-safety-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-p0c:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/p0c-decision-safety
+          fetch-depth: 0
+      - name: Apply P0-C patch
+        run: python3 .github/scripts/p0c_decision_safety_patch.py
+      - name: Remove one-shot machinery
+        run: |
+          rm .github/scripts/p0c_decision_safety_patch.py
+          rm .github/workflows/p0c-decision-safety-once.yml
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html js/app.js css/styles.css qa/evidence-lens.spec.mjs .github/scripts/p0c_decision_safety_patch.py .github/workflows/p0c-decision-safety-once.yml
+          git diff --cached --check
+          git commit -m "fix: enforce decision rationale and second-step confirmation"
+          git push origin HEAD:fix/p0c-decision-safety
