@@ -19,6 +19,16 @@ jobs:
         with:
           ref: fix/p0c-decision-safety
           fetch-depth: 0
+      - name: Repair replacement escaping in patcher
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/p0c_decision_safety_patch.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('bind_pattern.subn(bind_replacement, app, count=1)', 'bind_pattern.subn(lambda _m: bind_replacement, app, count=1)')
+          text = text.replace('execute_pattern.subn(execute_replacement, app, count=1)', 'execute_pattern.subn(lambda _m: execute_replacement, app, count=1)')
+          path.write_text(text, encoding='utf-8')
+          PY
       - name: Apply P0-C patch
         run: python3 .github/scripts/p0c_decision_safety_patch.py
       - name: Remove one-shot machinery
