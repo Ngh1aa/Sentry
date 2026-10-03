@@ -61,6 +61,93 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await page.screenshot({ path: 'qa-artifacts/sentry-truthful-analytics.png', fullPage: true });
 });
 
+test('Sentry decision safety requires rationale, review acknowledgement and second-step commit', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
+
+  const note = page.locator('#analystNoteInput');
+  const guard = page.locator('#decisionConfirmPanel');
+  const validation = page.locator('#rationaleValidationMessage');
+  const statusBadge = page.locator('#evidenceStateBadge');
+  const rationale = 'Reviewed device spoofing, impossible travel and the newly added beneficiary.';
+
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  const bypassResult = await page.evaluate(() => window.sentryConsole.executeDecision(
+    'APPROVED',
+    'Reviewed the alert evidence and would otherwise allow this transaction.',
+    { evidenceReviewAcknowledged: false }
+  ));
+  expect(bypassResult).toBe(false);
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  // A destructive hotkey cannot commit, stage, or leak its key into rationale.
+  await page.keyboard.press('b');
+  await expect(note).toHaveValue('');
+  await expect(validation).toContainText('Rationale required');
+  await expect(guard).toBeHidden();
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  await note.fill(rationale);
+  await note.evaluate(element => element.blur());
+  await page.keyboard.press('b');
+
+  // Hotkey now stages the decision after the analyst leaves the text field; it still cannot commit in one step.
+  await expect(guard).toBeVisible();
+  await expect(page.locator('#pendingDecisionTitle')).toContainText('BLOCK & FREEZE');
+  await expect(page.locator('#btnConfirmDecision')).toBeDisabled();
+  await expect(statusBadge).toContainText('HIGH RISK');
+
+  await page.locator('#decisionEvidenceAck').check();
+  await expect(page.locator('#btnConfirmDecision')).toBeEnabled();
+  await page.locator('#btnConfirmDecision').click();
+
+  // The mounted Audit workspace reads consoleApp.auditLog and must show the real analyst rationale.
+  await page.locator('.nav-tab[data-view="audit"]').click();
+  const auditWorkspace = page.locator('#opsAuditRoot');
+  await expect(auditWorkspace).toContainText(rationale);
+  await expect(auditWorkspace).toContainText('FROZEN');
+
+  // Re-opening the committed alert locks decision controls against silent overwrite.
+  await page.evaluate(() => {
+    window.sentryConsole.activeAlertId = 'ALT-8921';
+    window.sentryConsole.switchView('queue');
+    window.sentryConsole.renderAlertQueue();
+    window.sentryConsole.renderActiveAlert();
+  });
+  await expect(page.locator('#btnActionFreeze')).toBeDisabled();
+  await expect(page.locator('#decisionSafetyStatus')).toContainText('Decision committed: FROZEN');
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-decision-safety.png', fullPage: true });
+});
+
+test('Sentry decision safety visibly flags a model recommendation override', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
+
+  // Fresh page state avoids contamination from the post-commit auto-advance timer.
+  const recommendation = await page.evaluate(() => {
+    window.sentryConsole.activeAlertId = 'ALT-8920';
+    window.sentryConsole.switchView('queue');
+    window.sentryConsole.renderAlertQueue();
+    window.sentryConsole.renderActiveAlert();
+    return window.sentryConsole.alerts.find(alert => alert.id === 'ALT-8920')?.riskSpectrum.recommendation;
+  });
+  expect(recommendation).toBe('OVERRIDE & ALLOW (VIP TRAVEL)');
+
+  const note = page.locator('#analystNoteInput');
+  await note.fill('The rule conflict remains unresolved, so containment is preferred despite the model recommendation to allow VIP travel.');
+  await page.locator('#btnActionFreeze').click();
+  await expect(page.locator('#pendingDecisionTitle')).toContainText('BLOCK & FREEZE');
+  await expect(page.locator('#pendingDecisionImpact')).toContainText('overrides the model recommendation');
+  await expect(page.locator('#pendingDecisionImpact')).toContainText('OVERRIDE & ALLOW (VIP TRAVEL)');
+  await page.locator('#btnCancelDecision').click();
+
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-decision-override.png', fullPage: true });
+});
+
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
   const status = JSON.parse(await fs.readFile('research/validation/sentry-round-01/status.json', 'utf8'));
   expect(status.status).toBe('READY_TO_RECRUIT');

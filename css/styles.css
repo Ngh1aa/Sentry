@@ -1667,3 +1667,129 @@ html, body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* P0-C Decision Safety */
+.btn-decision:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.rationale-validation-message,
+.decision-safety-status,
+.decision-confirm-panel {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+.rationale-validation-message {
+  color: var(--text-muted);
+}
+
+.rationale-validation-message.is-error {
+  color: var(--risk-high);
+}
+
+.rationale-validation-message.is-valid {
+  color: var(--risk-clean);
+}
+
+.decision-safety-status {
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-input);
+  color: var(--text-secondary);
+}
+
+.decision-safety-status.is-staged {
+  border-color: var(--accent-blue);
+  color: #FFFFFF;
+}
+
+.decision-safety-status.is-locked {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text-muted);
+}
+
+.decision-confirm-panel {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-blue);
+  background: rgba(50, 39, 97, 0.32);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.decision-confirm-panel[hidden] {
+  display: none;
+}
+
+.decision-confirm-eyebrow {
+  color: var(--accent-blue);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.decision-confirm-title {
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.74rem;
+}
+
+.decision-confirm-impact {
+  color: var(--text-secondary);
+}
+
+.decision-confirm-impact.is-override {
+  color: var(--risk-warn);
+}
+
+.decision-ack-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.decision-ack-row input {
+  margin-top: 2px;
+  accent-color: var(--accent-blue);
+}
+
+.decision-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.decision-confirm-btn {
+  min-height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.decision-confirm-btn.primary {
+  background: var(--btn-primary);
+  color: #FFFFFF;
+  border-color: var(--accent-blue);
+}
+
+.decision-confirm-btn.secondary {
+  background: var(--bg-surface-input);
+  color: var(--text-secondary);
+}
+
+.decision-confirm-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
