@@ -500,10 +500,14 @@ class SentryFraudConsole {
     const message = document.getElementById('rationaleValidationMessage');
     const raw = noteArea ? noteArea.value.trim() : '';
     const meaningful = this.normalizeRationaleText(raw);
-    const valid = meaningful.length >= this.decisionMinRationaleLength && !raw.startsWith('[Resolved]');
+    const resolved = raw.startsWith('[Resolved]');
+    const valid = meaningful.length >= this.decisionMinRationaleLength && !resolved;
 
     if (message) {
-      if (!meaningful) {
+      if (resolved) {
+        message.textContent = 'Committed rationale is read-only and preserved in the audit trail.';
+        message.className = 'rationale-validation-message';
+      } else if (!meaningful) {
         message.textContent = `Rationale required. Explain the evidence and reasoning in at least ${this.decisionMinRationaleLength} characters.`;
         message.className = 'rationale-validation-message is-error';
       } else if (!valid) {
@@ -637,7 +641,7 @@ class SentryFraudConsole {
       return;
     }
 
-    this.executeDecision(pending.verdict, pending.rationale, pending);
+    this.executeDecision(pending.verdict, pending.rationale, { ...pending, evidenceReviewAcknowledged: true });
   }
 
   executeDecision(verdict, noteText, context = {}) {
@@ -645,6 +649,10 @@ class SentryFraudConsole {
     if (!alert) return false;
     if (this.isFinalDecisionStatus(alert.status)) {
       this.showToast(`Decision already committed for ${alert.id}.`);
+      return false;
+    }
+    if (!context.evidenceReviewAcknowledged) {
+      this.showToast('Decision blocked: evidence review acknowledgement is required.');
       return false;
     }
 
@@ -660,7 +668,7 @@ class SentryFraudConsole {
       classification: context.selectedTag || this.selectedTag || null,
       recommendation: context.recommendation || alert.riskSpectrum.recommendation,
       recommendationOverride: Boolean(context.override),
-      evidenceReviewAcknowledged: true
+      evidenceReviewAcknowledged: Boolean(context.evidenceReviewAcknowledged)
     };
 
     const rationaleParts = [alert.analystDecision];

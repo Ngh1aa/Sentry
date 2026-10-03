@@ -72,6 +72,14 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
 
   await expect(statusBadge).toContainText('HIGH RISK');
 
+  const bypassResult = await page.evaluate(() => window.sentryConsole.executeDecision(
+    'APPROVED',
+    'Reviewed the alert evidence and would otherwise allow this transaction.',
+    { evidenceReviewAcknowledged: false }
+  ));
+  expect(bypassResult).toBe(false);
+  await expect(statusBadge).toContainText('HIGH RISK');
+
   // A destructive hotkey cannot commit or even stage without human rationale.
   await page.keyboard.press('b');
   await expect(validation).toContainText('Rationale required');
