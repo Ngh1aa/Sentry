@@ -69,6 +69,7 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   const guard = page.locator('#decisionConfirmPanel');
   const validation = page.locator('#rationaleValidationMessage');
   const statusBadge = page.locator('#evidenceStateBadge');
+  const rationale = 'Reviewed device spoofing, impossible travel and the newly added beneficiary.';
 
   await expect(statusBadge).toContainText('HIGH RISK');
 
@@ -87,7 +88,7 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await expect(guard).toBeHidden();
   await expect(statusBadge).toContainText('HIGH RISK');
 
-  await note.fill('Reviewed device spoofing, impossible travel and the newly added beneficiary.');
+  await note.fill(rationale);
   await note.evaluate(element => element.blur());
   await page.keyboard.press('b');
 
@@ -101,9 +102,11 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await expect(page.locator('#btnConfirmDecision')).toBeEnabled();
   await page.locator('#btnConfirmDecision').click();
 
-  // The immutable audit trail keeps the analyst's actual rationale, not a default note.
-  await expect(page.locator('#auditLogTableBody')).toContainText('Reviewed device spoofing, impossible travel and the newly added beneficiary.');
-  await expect(page.locator('#auditLogTableBody')).toContainText('FROZEN');
+  // The mounted Audit workspace reads consoleApp.auditLog and must show the real analyst rationale.
+  await page.locator('.nav-tab[data-view="audit"]').click();
+  const auditWorkspace = page.locator('#opsAuditRoot');
+  await expect(auditWorkspace).toContainText(rationale);
+  await expect(auditWorkspace).toContainText('FROZEN');
 
   // Re-opening the committed alert locks decision controls against silent overwrite.
   await page.evaluate(() => {
