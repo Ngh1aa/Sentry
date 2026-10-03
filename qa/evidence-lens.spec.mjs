@@ -29,6 +29,28 @@ test('Sentry evidence lens exposes decision pins, baseline, tour and operational
   await page.screenshot({ path: 'qa-artifacts/sentry-evidence-lens.png', fullPage: true });
 });
 
+test('Sentry analytics keeps simulated outcomes inside the evidence boundary', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/analytics.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.documentElement.dataset.sentryReady === 'analytics');
+
+  const metrics = page.locator('#analyticsMetrics');
+  await expect(metrics).toContainText('EVIDENCE STATUS');
+  await expect(metrics).toContainText('0 verified DIRECT_USER · 0 verified PROXY sessions');
+  await expect(metrics).toContainText('PREVENTED FRAUD LOSS');
+  await expect(metrics).toContainText('NOT MEASURED');
+  await expect(metrics).toContainText('SCENARIO ONLY');
+
+  await expect(metrics).not.toContainText('$1,842,900');
+  await expect(metrics).not.toContainText('99.4% precision');
+  await expect(metrics).not.toContainText('Reduced from 18.2 min');
+
+  const kpis = page.locator('.sentry-kpi-strip');
+  await expect(kpis).toContainText('Decision Time Evidence:');
+  await expect(kpis).toContainText('False Positive Evidence:');
+  await expect(kpis).toContainText('Not measured');
+});
+
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
   const status = JSON.parse(await fs.readFile('research/validation/sentry-round-01/status.json', 'utf8'));
   expect(status.status).toBe('READY_TO_RECRUIT');
