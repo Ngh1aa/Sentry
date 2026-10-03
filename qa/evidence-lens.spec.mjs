@@ -118,22 +118,34 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await expect(page.locator('#btnActionFreeze')).toBeDisabled();
   await expect(page.locator('#decisionSafetyStatus')).toContainText('Decision committed: FROZEN');
 
-  // Pin a known ALLOW recommendation and choose FREEZE to exercise a real override.
-  const overrideRecommendation = await page.evaluate(() => {
+  await fs.mkdir('qa-artifacts', { recursive: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-decision-safety.png', fullPage: true });
+});
+
+test('Sentry decision safety visibly flags a model recommendation override', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
+
+  // Fresh page state avoids contamination from the post-commit auto-advance timer.
+  const recommendation = await page.evaluate(() => {
     window.sentryConsole.activeAlertId = 'ALT-8920';
     window.sentryConsole.switchView('queue');
     window.sentryConsole.renderAlertQueue();
     window.sentryConsole.renderActiveAlert();
     return window.sentryConsole.alerts.find(alert => alert.id === 'ALT-8920')?.riskSpectrum.recommendation;
   });
-  expect(overrideRecommendation).toBe('OVERRIDE & ALLOW (VIP TRAVEL)');
+  expect(recommendation).toBe('OVERRIDE & ALLOW (VIP TRAVEL)');
+
+  const note = page.locator('#analystNoteInput');
   await note.fill('The rule conflict remains unresolved, so containment is preferred despite the model recommendation to allow VIP travel.');
   await page.locator('#btnActionFreeze').click();
+  await expect(page.locator('#pendingDecisionTitle')).toContainText('BLOCK & FREEZE');
   await expect(page.locator('#pendingDecisionImpact')).toContainText('overrides the model recommendation');
+  await expect(page.locator('#pendingDecisionImpact')).toContainText('OVERRIDE & ALLOW (VIP TRAVEL)');
   await page.locator('#btnCancelDecision').click();
 
   await fs.mkdir('qa-artifacts', { recursive: true });
-  await page.screenshot({ path: 'qa-artifacts/sentry-decision-safety.png', fullPage: true });
+  await page.screenshot({ path: 'qa-artifacts/sentry-decision-override.png', fullPage: true });
 });
 
 test('Sentry research truth gate remains planned until real sessions exist', async () => {
