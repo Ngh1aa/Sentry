@@ -88,9 +88,10 @@ test('Sentry decision safety requires rationale, review acknowledgement and seco
   await expect(statusBadge).toContainText('HIGH RISK');
 
   await note.fill('Reviewed device spoofing, impossible travel and the newly added beneficiary.');
+  await note.evaluate(element => element.blur());
   await page.keyboard.press('b');
 
-  // Hotkey now stages the decision; it still cannot commit in one step.
+  // Hotkey now stages the decision after the analyst leaves the text field; it still cannot commit in one step.
   await expect(guard).toBeVisible();
   await expect(page.locator('#pendingDecisionTitle')).toContainText('BLOCK & FREEZE');
   await expect(page.locator('#btnConfirmDecision')).toBeDisabled();
