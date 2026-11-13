@@ -86,13 +86,13 @@ const SentryVisuals = {
         <!-- Floating Value Tag -->
         <g transform="translate(${lastPt.x - 72}, ${lastPt.y - 30})">
           <rect width="68" height="20" rx="4" fill="#FE678A"/>
-          <text x="34" y="14" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">${curveData.spikeValue}</text>
+          <text x="34" y="14" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">${curveData.spikeValue}</text>
         </g>
 
         <!-- X Axis Labels -->
-        <text x="${pointsActual[0].x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" fill="#64748B">00:00</text>
-        <text x="${width / 2}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" fill="#64748B" text-anchor="middle">10m Window</text>
-        <text x="${lastPt.x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#FE678A" text-anchor="end">Current</text>
+        <text x="${pointsActual[0].x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="12" fill="#64748B">00:00</text>
+        <text x="${width / 2}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="12" fill="#64748B" text-anchor="middle">10m Window</text>
+        <text x="${lastPt.x}" y="${height - 6}" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#B4234B" text-anchor="end">Current</text>
       </svg>
     `;
   },
@@ -126,8 +126,8 @@ const SentryVisuals = {
             style="transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1);"/>
         </svg>
         <div class="donut-center-text">
-          <span class="donut-score mono bold" style="color: ${strokeColor};">${score}%</span>
-          <span class="donut-lbl" style="color: #64748B;">${gradeLabel}</span>
+          <span class="donut-score mono bold" style="color: ${/fe678a/i.test(strokeColor) ? '#B4234B' : (/4496c8/i.test(strokeColor) ? '#1F6A99' : strokeColor)};">${score}%</span>
+          <span class="donut-lbl" style="color: #5B6B80;">${gradeLabel}</span>
         </div>
       </div>
     `;
@@ -144,7 +144,7 @@ const SentryVisuals = {
     container.innerHTML = `
       <div class="geo-hop-box">
         <div class="geo-hop-header">
-          <span class="geo-tag mono" style="color: #64748B;">${geoData.distanceKm} // DELTA ${geoData.timeDeltaMin}</span>
+          <span class="geo-tag mono" style="color: #5B6B80;">${geoData.distanceKm} // DELTA ${geoData.timeDeltaMin}</span>
           <span class="badge-tag ${isImpossible ? 'tag-danger' : 'tag-clean'}">${geoData.speedKmh}</span>
         </div>
 
@@ -152,7 +152,7 @@ const SentryVisuals = {
           <!-- Node 1 (Origin) in #4496C8 -->
           <circle cx="45" cy="55" r="8" fill="rgba(68, 150, 200, 0.25)"/>
           <circle cx="45" cy="55" r="4.5" fill="#4496C8"/>
-          <text x="45" y="74" font-family="'JetBrains Mono', monospace" font-size="9" fill="#475569" text-anchor="middle">${geoData.origin.name.split(' ')[0]}</text>
+          <text x="45" y="74" font-family="'JetBrains Mono', monospace" font-size="12" fill="#475569" text-anchor="middle">${geoData.origin.name.split(' ')[0]}</text>
 
           <!-- Parabolic Flight Arc -->
           <path d="M 45 55 Q 160 5, 275 55" fill="none" stroke="${arcColor}" stroke-width="2.4" stroke-dasharray="5 4"/>
@@ -163,7 +163,7 @@ const SentryVisuals = {
           <!-- Node 2 (Destination) -->
           <circle cx="275" cy="55" r="${isImpossible ? 10 : 8}" fill="${isImpossible ? 'rgba(254, 103, 138, 0.25)' : 'rgba(68, 150, 200, 0.25)'}"/>
           <circle cx="275" cy="55" r="4.5" fill="${arcColor}"/>
-          <text x="275" y="74" font-family="'JetBrains Mono', monospace" font-size="9" fill="${isImpossible ? '#FE678A' : '#475569'}" font-weight="700" text-anchor="middle">${geoData.destination.name.split(' ')[0]}</text>
+          <text x="275" y="74" font-family="'JetBrains Mono', monospace" font-size="12" fill="${isImpossible ? '#B4234B' : '#475569'}" font-weight="700" text-anchor="middle">${geoData.destination.name.split(' ')[0]}</text>
         </svg>
 
         <div class="geo-verdict-bar ${isImpossible ? 'text-danger' : 'text-clean'} mono bold">

@@ -102,6 +102,29 @@ Open `http://localhost:4199` in your browser.
 
 ---
 
+## 06b. Full Prototype Behaviour (no backend)
+
+Every app page now behaves like the product, with only the backend missing:
+
+- **Data**: `js/data.js` is the single seed. `js/store.js` copies it into `sessionStorage`, so every change survives navigation and reload within the tab. Open **Demo data** in the header to **Reset demo data** or to **Fail the next request** (simulated 503).
+- **Alerts**: assign, create a case, escalate, mark false positive and resolve with a mandatory rationale; bulk select for assign, case, escalate and false positive. A failed audit write keeps the rationale and offers a retry.
+- **Cases** (`#cases/CASE-4401`): create from alerts or manually, notes, evidence file names, status changes, close with a resolution, reopen.
+- **Rules** (`#rules/RULE-402`): create and edit with validation, enable or disable, clone, delete with confirmation, and a simulated test against the last 30 days.
+- **Customers** (`#customers/CUST-90412`): freeze or unfreeze with a reason, EDD request, watchlist and watchlist notes, CSV export.
+- **Analytics**: 7D/30D/90D or a custom date range, typology and channel filters, CSV export, shift brief. Outcome metrics stay NOT MEASURED.
+- **Audit** (`#audit/AUD-99120`): search, actor, action, outcome and date filters, entry detail with links to the entity, CSV export, chain verification.
+- Each workspace has loading, empty, not-found and recoverable-error states.
+
+QA:
+
+```bash
+py -3 -m http.server 8922 --bind 127.0.0.1
+SENTRY_BASE_URL=http://127.0.0.1:8922 npx playwright test qa/full-prototype.spec.mjs qa/evidence-lens.spec.mjs --workers=1
+BASE_URL=http://127.0.0.1:8922 node qa/control-inventory.mjs   # clicks every control, fails on dead controls or href="#"
+```
+
+---
+
 ## 07. Author & Portfolio
 
 Designed & engineered by **Đỗ Anh Nghĩa** as a flagship Fintech UI/UX case study.

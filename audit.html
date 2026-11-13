@@ -7,7 +7,7 @@
   <meta name="description" content="SENTRY immutable forensic audit ledger view.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -28,7 +28,7 @@
         script.onerror = reject;
         document.body.appendChild(script);
       });
-      for (const src of ['js/icons.js', 'js/data.js', 'js/visuals.js', 'js/app.js']) await load(src);
+      for (const src of ['js/icons.js', 'js/data.js', 'js/store.js', 'js/visuals.js', 'js/app.js', 'js/accessibility.js']) await load(src);
       document.dispatchEvent(new Event('DOMContentLoaded'));
       window.sentryConsole?.switchView(targetView);
       document.documentElement.dataset.sentryReady = targetView;

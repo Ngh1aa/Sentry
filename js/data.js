@@ -432,3 +432,67 @@ const SENTRY_DATA = {
     }
   ]
 };
+
+// ---------------------------------------------------------------------------
+// Workflow seed (cases, customers, extra ledger rows, analytics series).
+// This file is the single seed for the demo store (js/store.js). User changes
+// are written to sessionStorage and never back into this file.
+// ---------------------------------------------------------------------------
+SENTRY_DATA.cases = [
+  { id: "CASE-4401", alertIds: ["ALT-8921"], priority: "P0 CRITICAL", status: "UNDER_REVIEW", owner: "Đỗ Anh Nghĩa", queue: "ATO / Wire", sla: "08m 14s", opened: "18m ago", customerId: "CUST-90412", customer: "Eleanor Vance", amount: "$8,450.00", risk: 94, title: "NEW BENEFICIARY AMOUNT GT 5K", summary: "Instant External Wire to Panama Global Vault Remit SA", notes: [], evidence: [], resolution: null },
+  { id: "CASE-4402", alertIds: ["ALT-8920"], priority: "P1 CONFLICT", status: "CONFLICT_TRIAGE", owner: "Đỗ Anh Nghĩa", queue: "VIP Exceptions", sla: "32m 00s", opened: "24m ago", customerId: "CUST-38109", customer: "Marcus Aurelius Thorne", amount: "€4,200.00", risk: 62, title: "FOREIGN MCC LUXURY HOLD", summary: "Card present POS at Hôtel Plaza Athénée Paris", notes: [], evidence: [], resolution: null },
+  { id: "CASE-4403", alertIds: ["ALT-8919"], priority: "P0 AUTO", status: "CONTAINED", owner: "SENTRY Autopilot", queue: "Carding Swarm", sla: "COMPLETED", opened: "41m ago", customerId: "CUST-10492", customer: "Devon Bradley", amount: "$14.99", risk: 99, title: "CARDING VELOCITY RAPID FIRE", summary: "48 micro-transactions at Steam Games Store", notes: [], evidence: [], resolution: null },
+  { id: "CASE-4398", alertIds: [], priority: "P1 HIGH", status: "PENDING_EVIDENCE", owner: "Mina Patel", queue: "Account Defense", sla: "51m 20s", opened: "11m ago", customerId: "CUST-77219", customer: "Sarah Keene", amount: "$12,840.00", risk: 81, title: "SESSION TAKEOVER, DEVICE RESET", summary: "Credential reset followed by high-value equipment purchase",
+    drivers: [{ category: "Device reset", score: 29 }, { category: "Credential change", score: 25 }, { category: "Spend anomaly", score: 27 }],
+    timeline: [{ time: "00:44", title: "Password reset", desc: "Recovery completed from a new Android device." }, { time: "00:52", title: "New device trusted", desc: "Device enrolled without historical cookie continuity." }, { time: "01:06", title: "Purchase held", desc: "$12.8k electronics authorization routed to review." }],
+    notes: [{ id: "N-1", author: "Mina Patel", at: "2026-09-16 00:58 UTC", text: "Requested device trust history from the identity team." }], evidence: [{ id: "E-1", name: "device-trust-history.pdf", addedBy: "Mina Patel", at: "2026-09-16 01:02 UTC" }], resolution: null },
+  { id: "CASE-4396", alertIds: [], priority: "P2 MEDIUM", status: "AWAITING_CUSTOMER", owner: "Leo Martins", queue: "Disputes", sla: "2h 18m", opened: "36m ago", customerId: "CUST-22018", customer: "Nora Jensen", amount: "$1,298.40", risk: 58, title: "FRIENDLY FRAUD, SUBSCRIPTION CLUSTER", summary: "Repeated dispute pattern across digital subscriptions",
+    drivers: [{ category: "Dispute velocity", score: 22 }, { category: "Merchant pattern", score: 18 }, { category: "Account history", score: 18 }],
+    timeline: [{ time: "Yesterday", title: "Third dispute filed", desc: "Digital merchant dispute submitted within 14 days." }, { time: "Today 00:18", title: "Pattern linked", desc: "Three related merchants identified by descriptor similarity." }],
+    notes: [], evidence: [], resolution: null },
+  { id: "CASE-4391", alertIds: [], priority: "P2 REVIEW", status: "SUPERVISOR_REVIEW", owner: "Sarah Jenkins", queue: "Merchant Risk", sla: "3h 42m", opened: "1h ago", customerId: "MERCH-1182", customer: "Atlas Tickets GmbH", amount: "€94,210.00", risk: 73, title: "MERCHANT BURST, REFUND IMBALANCE", summary: "Refund ratio rose 4.8× against 30-day baseline",
+    drivers: [{ category: "Refund ratio", score: 31 }, { category: "Burst velocity", score: 24 }, { category: "Entity graph", score: 18 }],
+    timeline: [{ time: "23:10", title: "Refund spike begins", desc: "86 refunds initiated in a 22-minute window." }, { time: "00:03", title: "Reserve threshold crossed", desc: "Merchant reserve moved above configured threshold." }],
+    notes: [], evidence: [], resolution: null }
+];
+
+SENTRY_DATA.extraCustomers = [
+  { id: "CUST-77219", name: "Sarah Keene", email: "s.keene@northline.co", trustTier: "Silver", accountAge: "2y 9m", lifetimeVolume: "$118,240", disputes: 1, risk: 81, segment: "Business", status: "REVIEW", devices: 4, home: "Chicago, USA" },
+  { id: "CUST-22018", name: "Nora Jensen", email: "nora.jensen@mailbox.dk", trustTier: "Standard", accountAge: "1y 4m", lifetimeVolume: "$31,980", disputes: 3, risk: 58, segment: "Consumer", status: "MONITOR", devices: 2, home: "Copenhagen, DK" },
+  { id: "CUST-66104", name: "Amir Haddad", email: "amir@starlane.ae", trustTier: "Gold", accountAge: "5y 1m", lifetimeVolume: "$614,320", disputes: 0, risk: 22, segment: "Private Wealth", status: "CLEAR", devices: 5, home: "Dubai, UAE" },
+  { id: "CUST-51029", name: "Maya Ito", email: "maya@shiro-studio.jp", trustTier: "Standard", accountAge: "3y 7m", lifetimeVolume: "$76,430", disputes: 0, risk: 34, segment: "Business", status: "CLEAR", devices: 3, home: "Tokyo, JP" }
+];
+
+SENTRY_DATA.auditLog.push(
+  { id: "AUD-99117", timestamp: "2026-09-15 23:51:12 UTC", actor: "SENTRY Rule Service", entity: "RULE-301", action: "POLICY_EVALUATED", rationale: "Cross-border luxury hold evaluated against VIP exemption path.", verdict: "CONFLICT_ROUTED", riskScoreAfter: 62 },
+  { id: "AUD-99116", timestamp: "2026-09-15 23:42:09 UTC", actor: "Mina Patel (Fraud Analyst)", entity: "CASE-4398", action: "EVIDENCE_REQUESTED", rationale: "Requested device trust history and customer callback before final disposition.", verdict: "PENDING_EVIDENCE", riskScoreAfter: 81 },
+  { id: "AUD-99115", timestamp: "2026-09-15 23:18:44 UTC", actor: "SENTRY Auth Gateway", entity: "CUST-66104", action: "STEP_UP_PASSED", rationale: "Biometric challenge completed on a previously trusted mobile device.", verdict: "ALLOWED_CLEAN", riskScoreAfter: 18 }
+);
+
+// Synthetic daily scenario series: 90 days ending on the scenario date.
+// Deterministic (seeded PRNG) so every reset produces identical numbers.
+// Scenario-only: these are not validated product outcomes.
+SENTRY_DATA.analyticsDaily = (() => {
+  let seed = 4401;
+  const rand = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const typologies = ["Account takeover", "Carding / bots", "Friendly fraud", "Merchant abuse"];
+  const channels = ["Wire", "Card", "ACH"];
+  const end = Date.UTC(2026, 8, 16);
+  const rows = [];
+  for (let d = 89; d >= 0; d--) {
+    const date = new Date(end - d * 86400000).toISOString().slice(0, 10);
+    const weekday = new Date(end - d * 86400000).getUTCDay();
+    typologies.forEach((typology, ti) => {
+      channels.forEach((channel, ci) => {
+        const base = [9, 14, 6, 4][ti] * [0.8, 1.4, 0.6][ci] * (weekday === 0 || weekday === 6 ? 0.7 : 1);
+        const alerts = Math.max(0, Math.round(base * (0.6 + rand() * 0.9)));
+        const blocked = Math.round(alerts * (0.18 + rand() * 0.14));
+        const stepUp = Math.round(alerts * (0.05 + rand() * 0.06));
+        const escalated = Math.round(alerts * (0.02 + rand() * 0.04));
+        rows.push({ date, typology, channel, alerts, blocked, stepUp, escalated, approved: Math.max(0, alerts - blocked - stepUp - escalated) });
+      });
+    });
+  }
+  return rows;
+})();
+SENTRY_DATA.scenarioDate = "2026-09-16";

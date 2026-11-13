@@ -37,7 +37,7 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   const analyticsView = page.locator('#view-analytics');
   await expect(analyticsView).toHaveClass(/active/);
   await expect(analyticsView).toContainText('Evidence status');
-  await expect(analyticsView).toContainText('0 verified DIRECT_USER · 0 verified PROXY sessions');
+  await expect(analyticsView).toContainText('0 verified DIRECT_USER, 0 verified PROXY sessions');
   await expect(analyticsView).toContainText('Prevented fraud loss');
   await expect(analyticsView).toContainText('NOT MEASURED');
   await expect(analyticsView).toContainText(/Synthetic|synthetic/);

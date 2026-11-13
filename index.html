@@ -7,7 +7,7 @@
   <meta name="description" content="Visual-first fraud risk operations console with real-time velocity curves, radial risk gauges, and geolocation hop diagrams.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/motion.css?v=20260917-1">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23322761'><path d='M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.58-3.15 8.87-7 9.94-3.85-1.07-7-5.36-7-9.94V7.3l7-3.12z'/></svg>">
@@ -75,11 +75,11 @@
     </div>
     <div class="kpi-block">
       <span class="kpi-lbl">Decision Time Evidence:</span>
-      <span class="kpi-val text-warning">Not measured · Round 01 pending</span>
+      <span class="kpi-val text-warning">Not measured, Round 01 pending</span>
     </div>
     <div class="kpi-block">
       <span class="kpi-lbl">False Positive Evidence:</span>
-      <span class="kpi-val text-warning">Not measured · 0 verified sessions</span>
+      <span class="kpi-val text-warning">Not measured, 0 verified sessions</span>
     </div>
     <div class="kpi-block">
       <span class="kpi-lbl">Autonomous Intercepts:</span>
@@ -112,6 +112,22 @@
               <button class="filter-btn" data-filter="RULE_CONFLICT">Rule Conflicts</button>
               <button class="filter-btn" data-filter="NEEDS_VERIFICATION">Verify</button>
               <button class="filter-btn" data-filter="FROZEN">Frozen</button>
+              <button class="filter-btn" data-filter="RESOLVED">Resolved</button>
+            </div>
+            <div class="queue-tools-row">
+              <button type="button" class="queue-tool-btn" id="queueSelectToggle" aria-pressed="false">Select alerts</button>
+              <button type="button" class="queue-tool-btn" id="queueRefresh">Refresh queue</button>
+            </div>
+            <div class="queue-bulk-bar" id="queueBulkBar" hidden>
+              <div class="queue-bulk-count" id="queueBulkCount" role="status" aria-live="polite">0 selected</div>
+              <input type="text" class="queue-bulk-input" id="queueBulkRationale" aria-label="Bulk rationale" placeholder="Bulk rationale, at least 20 characters">
+              <div class="queue-bulk-actions">
+                <button type="button" class="queue-tool-btn" data-bulk-action="assign">Assign to me</button>
+                <button type="button" class="queue-tool-btn" data-bulk-action="case">Create case</button>
+                <button type="button" class="queue-tool-btn" data-bulk-action="escalate">Escalate</button>
+                <button type="button" class="queue-tool-btn" data-bulk-action="false-positive">False positive</button>
+              </div>
+              <div class="queue-bulk-error" id="queueBulkError" role="alert" hidden></div>
             </div>
           </div>
 
@@ -132,6 +148,11 @@
               <span class="evidence-cust-pill mono" id="evidenceCustomerInfo"></span>
             </div>
             <div class="evidence-header-time mono" id="evidenceTimestamp">2026-09-16 01:14:22 UTC</div>
+            <div class="evidence-header-actions">
+              <span class="evidence-assignee" id="evidenceAssignee">Unassigned</span>
+              <button type="button" class="queue-tool-btn" id="btnAssignAlert">Assign to me</button>
+              <button type="button" class="queue-tool-btn" id="btnAlertCase">Open case</button>
+            </div>
           </div>
 
           <!-- TOP ROW: 3 Visual Widgets (Radial Donut Gauge | Velocity Wave Chart | Virtual Card) -->
@@ -300,6 +321,7 @@
               <input type="checkbox" id="decisionEvidenceAck">
               <span>I reviewed the evidence, triggered rules and customer context for this alert.</span>
             </label>
+            <div class="decision-commit-error" id="decisionCommitError" role="alert" hidden></div>
             <div class="decision-confirm-actions">
               <button class="decision-confirm-btn secondary" id="btnCancelDecision" type="button">Cancel</button>
               <button class="decision-confirm-btn primary" id="btnConfirmDecision" type="button" disabled>Commit decision</button>
@@ -442,6 +464,7 @@
   <!-- Scripts -->
   <script src="js/icons.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
   <script src="js/visuals.js"></script>
   <script src="js/app.js"></script>
   <script src="js/accessibility.js"></script>

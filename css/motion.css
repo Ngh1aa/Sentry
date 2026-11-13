@@ -36,7 +36,7 @@
   .diagram-card{transition:transform var(--sentry-motion-base) var(--sentry-motion-snap),border-color var(--sentry-motion-fast) ease,box-shadow var(--sentry-motion-base) ease}
   .diagram-card:hover{transform:translate3d(0,-5px,0);box-shadow:0 16px 32px rgba(12,16,26,.14)}
 }
-.queue-alert-card.active{box-shadow:inset 4px 0 0 currentColor,0 8px 24px rgba(12,16,26,.08)}
+.queue-alert-card.active{box-shadow:inset 0 0 0 2px var(--btn-primary),0 8px 24px rgba(12,16,26,.08)}
 
 .btn-decision,.filter-btn,.nav-tab,.tag-btn{
   transition:transform var(--sentry-motion-fast) var(--sentry-motion-snap),box-shadow var(--sentry-motion-fast) ease,background-color var(--sentry-motion-fast) ease,border-color var(--sentry-motion-fast) ease,color var(--sentry-motion-fast) ease;

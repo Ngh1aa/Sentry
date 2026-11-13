@@ -12,15 +12,24 @@ class SentryFraudConsole {
     this.decisionMinRationaleLength = 20;
     this.routableViews = new Set(['queue', 'cases', 'rules', 'customers', 'analytics', 'audit']);
     this.routeSyncMuted = false;
-    this.alerts = JSON.parse(JSON.stringify(SENTRY_DATA.alerts));
-    this.auditLog = JSON.parse(JSON.stringify(SENTRY_DATA.auditLog));
+    this.store = window.SentryStore;
+    // Store-backed collections: mutations persist to sessionStorage via store.save().
+    this.alerts = this.store ? this.store.state.alerts : JSON.parse(JSON.stringify(SENTRY_DATA.alerts));
+    this.auditLog = this.store ? this.store.state.auditLog : JSON.parse(JSON.stringify(SENTRY_DATA.auditLog));
+    this.routeParam = null;
+    this.bulkMode = false;
+    this.bulkSelection = new Set();
+    this.queueLoad = 'loading';
+    this.commitInFlight = false;
 
     this.hydrateRouteState();
     this.init();
   }
 
   init() {
+    if (this.store) this.store.mountControls();
     this.bindNavigation();
+    this.bindQueueWorkflow();
     this.bindFilters();
     this.bindSearch();
     this.bindDecisionPanel();
@@ -31,8 +40,11 @@ class SentryFraudConsole {
     this.renderAnalytics();
     this.renderCustomers();
     this.updateHeaderCounters();
-    this.switchView(this.currentView, { syncRoute: false });
+    this.switchView(this.currentView, { syncRoute: false, param: this.routeParam });
     this.syncRoute({ replace: true });
+    if (this.missingAlertId) this.showToast(`Alert ${this.missingAlertId} was not found. Showing ${this.activeAlertId} instead.`);
+    if (this.store && this.store.consumeResetNotice()) this.showToast('Demo data reset to the original seed.');
+    this.loadQueue();
   }
 
   bindNavigation() {
@@ -117,10 +129,13 @@ class SentryFraudConsole {
     }
 
     if (requestedView !== 'queue') {
+      // Detail routes (#cases/CASE-4401, #rules/RULE-402, ...) carry a record id.
+      // Unknown ids are kept so the workspace can render a not-found state.
       return {
         view: requestedView,
         alertId: null,
-        valid: parts.length === 1
+        param: parts[1] || null,
+        valid: parts.length <= 2
       };
     }
 
@@ -129,6 +144,7 @@ class SentryFraudConsole {
     return {
       view: 'queue',
       alertId: alertExists ? requestedAlertId : fallbackAlertId,
+      missingAlertId: parts[1] && !alertExists ? parts[1] : null,
       valid: parts.length <= 2 && alertExists
     };
   }
@@ -136,6 +152,8 @@ class SentryFraudConsole {
   hydrateRouteState() {
     const route = this.readRouteState();
     this.currentView = route.view;
+    this.routeParam = route.param || null;
+    this.missingAlertId = route.missingAlertId || null;
     if (route.view === 'queue' && route.alertId) this.activeAlertId = route.alertId;
   }
 
@@ -146,7 +164,7 @@ class SentryFraudConsole {
         : this.alerts[0]?.id;
       return `#queue/${encodeURIComponent(safeAlertId || '')}`;
     }
-    return `#${viewId}`;
+    return this.routeParam ? `#${viewId}/${encodeURIComponent(this.routeParam)}` : `#${viewId}`;
   }
 
   syncRoute({ replace = false } = {}) {
@@ -177,7 +195,8 @@ class SentryFraudConsole {
     }
 
     if (route.view === 'queue' && route.alertId) this.activeAlertId = route.alertId;
-    this.switchView(route.view, { syncRoute: false });
+    this.switchView(route.view, { syncRoute: false, param: route.param || null });
+    if (route.missingAlertId) this.showToast(`Alert ${route.missingAlertId} was not found. Showing ${this.activeAlertId} instead.`);
 
     if (route.view === 'queue' && (previousView !== 'queue' || previousAlertId !== this.activeAlertId)) {
       this.renderAlertQueue();
@@ -202,13 +221,24 @@ class SentryFraudConsole {
       analytics: 'Analytics',
       audit: 'Audit Log'
     };
-    const context = this.currentView === 'queue' ? ` · ${this.activeAlertId}` : '';
+    const context = this.currentView === 'queue' ? ` · ${this.activeAlertId}` : (this.routeParam ? ` · ${this.routeParam}` : '');
     document.title = `SENTRY — ${labels[this.currentView] || 'Fraud & Risk Operations Console'}${context}`;
   }
 
-  switchView(viewId, { syncRoute = true, replaceRoute = false } = {}) {
+  // Programmatic navigation used by the secondary workspaces (detail routes).
+  navigate(viewId, param = null, { replace = false } = {}) {
+    if (viewId === 'queue' && param && this.alerts.some(alert => alert.id === param)) {
+      this.activeAlertId = param;
+      this.renderAlertQueue();
+      this.renderActiveAlert();
+    }
+    this.switchView(viewId, { param: viewId === 'queue' ? null : param, replaceRoute: replace });
+  }
+
+  switchView(viewId, { syncRoute = true, replaceRoute = false, param = null } = {}) {
     const nextView = this.routableViews.has(viewId) ? viewId : 'queue';
-    if (this.pendingDecision && this.currentView === 'queue' && nextView !== 'queue') {
+    this.routeParam = nextView === 'queue' ? null : param;
+    if (this.pendingDecision && !this.commitInFlight && this.currentView === 'queue' && nextView !== 'queue') {
       this.cancelPendingDecision('Pending decision cancelled because you left the investigation queue.');
     }
     this.currentView = nextView;
@@ -226,6 +256,7 @@ class SentryFraudConsole {
 
     this.updateDocumentTitle();
     if (syncRoute) this.syncRoute({ replace: replaceRoute });
+    document.dispatchEvent(new CustomEvent('sentry:route', { detail: { view: nextView, param: this.routeParam } }));
   }
 
   bindFilters() {
@@ -273,6 +304,7 @@ class SentryFraudConsole {
 
     if (noteArea) {
       noteArea.addEventListener('input', () => {
+        noteArea.removeAttribute('aria-invalid');
         if (this.pendingDecision) this.cancelPendingDecision('Rationale changed — stage the action again.');
         this.updateRationaleValidation();
       });
@@ -299,6 +331,198 @@ class SentryFraudConsole {
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Queue workflow: load state, assignment, case linking and bulk actions.
+  // ---------------------------------------------------------------------
+  loadQueue() {
+    this.queueLoad = 'loading';
+    this.renderAlertQueue();
+    const request = this.store ? this.store.request('Loading the alert queue', null, { delay: 260 }) : Promise.resolve();
+    return request.then(() => {
+      this.queueLoad = 'ready';
+      this.renderAlertQueue();
+    }).catch(error => {
+      this.queueLoad = 'error';
+      this.queueError = error.message;
+      this.renderAlertQueue();
+    });
+  }
+
+  bindQueueWorkflow() {
+    const selectToggle = document.getElementById('queueSelectToggle');
+    if (selectToggle) {
+      selectToggle.addEventListener('click', () => {
+        this.bulkMode = !this.bulkMode;
+        if (!this.bulkMode) this.bulkSelection.clear();
+        selectToggle.setAttribute('aria-pressed', String(this.bulkMode));
+        selectToggle.textContent = this.bulkMode ? 'Done selecting' : 'Select alerts';
+        this.renderAlertQueue();
+      });
+    }
+    document.getElementById('queueRefresh')?.addEventListener('click', () => this.loadQueue());
+    document.getElementById('btnAssignAlert')?.addEventListener('click', () => this.assignAlerts([this.activeAlertId]));
+    document.getElementById('btnAlertCase')?.addEventListener('click', () => {
+      const alert = this.alerts.find(a => a.id === this.activeAlertId);
+      if (!alert) return;
+      const linked = this.store?.state.cases.find(c => c.id === alert.caseId);
+      if (linked) this.navigate('cases', linked.id);
+      else this.createCaseFromAlerts([alert.id]);
+    });
+    document.querySelectorAll('[data-bulk-action]').forEach(button => {
+      button.addEventListener('click', () => this.runBulkAction(button.dataset.bulkAction));
+    });
+    document.addEventListener('sentry:store', () => {
+      this.updateHeaderCounters();
+      this.renderEvidenceActions();
+    });
+  }
+
+  setBusy(button, busy, label) {
+    if (!button) return;
+    if (busy) {
+      button.dataset.label = button.textContent;
+      button.textContent = label || 'Saving…';
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+    } else {
+      if (button.dataset.label) button.textContent = button.dataset.label;
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+    }
+  }
+
+  assignAlerts(ids, button = document.getElementById('btnAssignAlert')) {
+    if (!this.store || !ids.length) return Promise.resolve();
+    const me = this.store.analyst().name;
+    this.setBusy(button, true, 'Assigning…');
+    return this.store.request('Assigning alerts', state => {
+      ids.forEach(id => {
+        const alert = state.alerts.find(a => a.id === id);
+        if (!alert || alert.assignee === me) return;
+        alert.assignee = me;
+        this.store.audit({ entity: `${alert.id} / ${alert.customer.id}`, action: 'ALERT_ASSIGNED', rationale: `Assigned to ${me}.`, verdict: 'ASSIGNED', riskScoreAfter: alert.riskSpectrum.totalScore });
+      });
+    }).then(() => {
+      this.showToast(ids.length === 1 ? `${ids[0]} assigned to ${me}.` : `${ids.length} alerts assigned to ${me}.`);
+      this.renderAlertQueue();
+      this.renderEvidenceActions();
+    }).catch(error => this.showToast(`${error.message} Try again.`))
+      .finally(() => { this.setBusy(button, false); this.renderEvidenceActions(); });
+  }
+
+  createCaseFromAlerts(ids, button = document.getElementById('btnAlertCase')) {
+    if (!this.store || !ids.length) return Promise.resolve();
+    const me = this.store.analyst().name;
+    this.setBusy(button, true, 'Creating case…');
+    let created = null;
+    return this.store.request('Creating the case', state => {
+      const alerts = ids.map(id => state.alerts.find(a => a.id === id)).filter(Boolean);
+      const lead = alerts.slice().sort((a, b) => b.riskSpectrum.totalScore - a.riskSpectrum.totalScore)[0];
+      const id = this.store.nextId('case', 'CASE-');
+      created = {
+        id,
+        alertIds: alerts.map(a => a.id),
+        priority: lead.riskSpectrum.totalScore >= 75 ? 'P0 CRITICAL' : 'P1 HIGH',
+        status: 'UNDER_REVIEW',
+        owner: me,
+        queue: lead.transaction.type,
+        sla: lead.riskSpectrum.totalScore >= 75 ? '30m 00s' : '2h 00m',
+        opened: 'Just now',
+        customerId: lead.customer.id,
+        customer: lead.customer.name,
+        amount: lead.transaction.amountFormatted,
+        risk: lead.riskSpectrum.totalScore,
+        title: (lead.triggeredRules[0]?.name || 'Linked alert investigation').replaceAll('_', ' '),
+        summary: `${alerts.length} linked alert${alerts.length === 1 ? '' : 's'}, lead ${lead.id}`,
+        notes: [],
+        evidence: [],
+        resolution: null
+      };
+      state.cases.unshift(created);
+      alerts.forEach(alert => { alert.caseId = id; });
+      this.store.audit({ entity: id, action: 'CASE_CREATED', rationale: `Case opened from ${created.alertIds.join(', ')}.`, verdict: 'UNDER_REVIEW', riskScoreAfter: lead.riskSpectrum.totalScore });
+    }).then(() => {
+      this.showToast(`${created.id} created from ${created.alertIds.join(', ')}.`);
+      this.bulkSelection.clear();
+      this.renderAlertQueue();
+      this.renderEvidenceActions();
+      this.navigate('cases', created.id);
+    }).catch(error => this.showToast(`${error.message} Try again.`))
+      .finally(() => this.setBusy(button, false));
+  }
+
+  runBulkAction(action) {
+    const ids = [...this.bulkSelection];
+    const errorBox = document.getElementById('queueBulkError');
+    const showError = message => { if (errorBox) { errorBox.textContent = message; errorBox.hidden = !message; } };
+    showError('');
+    if (!ids.length) { showError('Select at least one alert first.'); return Promise.resolve(); }
+    const button = document.querySelector(`[data-bulk-action="${action}"]`);
+    if (action === 'assign') return this.assignAlerts(ids, button);
+    if (action === 'case') return this.createCaseFromAlerts(ids, button);
+
+    const verdict = action === 'escalate' ? 'ESCALATED' : 'FALSE_POSITIVE';
+    const input = document.getElementById('queueBulkRationale');
+    const rationale = (input?.value || '').trim();
+    if (rationale.length < this.decisionMinRationaleLength) {
+      showError(`Bulk ${verdict === 'ESCALATED' ? 'escalation' : 'false-positive closure'} needs a rationale of at least ${this.decisionMinRationaleLength} characters.`);
+      input?.focus();
+      return Promise.resolve();
+    }
+    const eligible = ids.filter(id => !this.isFinalDecisionStatus(this.alerts.find(a => a.id === id)?.status));
+    const skipped = ids.length - eligible.length;
+    if (!eligible.length) { showError('All selected alerts already have a committed decision.'); return Promise.resolve(); }
+
+    this.setBusy(button, true, 'Saving…');
+    return this.store.request(`Bulk ${verdict.toLowerCase().replace('_', ' ')}`, state => {
+      eligible.forEach(id => {
+        const alert = state.alerts.find(a => a.id === id);
+        alert.status = verdict;
+        alert.analystDecision = rationale;
+        alert.decisionMeta = { classification: 'Bulk action', recommendation: alert.riskSpectrum.recommendation, recommendationOverride: false, evidenceReviewAcknowledged: true };
+        this.store.audit({ entity: `${alert.id} / ${alert.customer.id}`, action: verdict, rationale: `${rationale} (bulk action)`, verdict, riskScoreAfter: alert.riskSpectrum.totalScore });
+      });
+    }).then(() => {
+      if (input) input.value = '';
+      this.bulkSelection.clear();
+      this.showToast(`${eligible.length} alert${eligible.length === 1 ? '' : 's'} marked ${verdict.replace('_', ' ').toLowerCase()}${skipped ? `, ${skipped} skipped (already decided)` : ''}.`);
+      this.renderAlertQueue();
+      this.renderActiveAlert();
+      this.renderAuditLog();
+      this.updateHeaderCounters();
+    }).catch(error => showError(`${error.message} Your rationale is kept; try again.`))
+      .finally(() => this.setBusy(button, false));
+  }
+
+  renderEvidenceActions() {
+    const alert = this.alerts.find(a => a.id === this.activeAlertId);
+    if (!alert) return;
+    const me = this.store?.analyst().name;
+    const assignee = document.getElementById('evidenceAssignee');
+    const assignButton = document.getElementById('btnAssignAlert');
+    const caseButton = document.getElementById('btnAlertCase');
+    if (assignee) assignee.textContent = alert.assignee ? `Assignee: ${alert.assignee}` : 'Unassigned';
+    if (assignButton && !assignButton.hasAttribute('aria-busy')) {
+      const mine = alert.assignee && alert.assignee === me;
+      assignButton.textContent = mine ? 'Assigned to you' : 'Assign to me';
+      assignButton.disabled = Boolean(mine);
+    }
+    if (caseButton && !caseButton.hasAttribute('aria-busy')) {
+      const linked = this.store?.state.cases.find(c => c.id === alert.caseId);
+      caseButton.textContent = linked ? `Open ${linked.id}` : 'Create case';
+    }
+    const caseLabel = document.getElementById('evidenceCaseId');
+    if (caseLabel) caseLabel.textContent = alert.caseId || 'NO CASE';
+  }
+
+  renderBulkBar() {
+    const bar = document.getElementById('queueBulkBar');
+    if (!bar) return;
+    bar.hidden = !this.bulkMode;
+    const count = document.getElementById('queueBulkCount');
+    if (count) count.textContent = `${this.bulkSelection.size} selected`;
+  }
+
   renderAlertQueue() {
     const container = document.getElementById('alertQueueList');
     if (!container) return;
@@ -309,6 +533,7 @@ class SentryFraudConsole {
       if (this.currentFilter === 'RULE_CONFLICT' && !alert.ruleConflict) return false;
       if (this.currentFilter === 'NEEDS_VERIFICATION' && alert.status !== 'NEEDS_VERIFICATION') return false;
       if (this.currentFilter === 'FROZEN' && alert.status !== 'FROZEN') return false;
+      if (this.currentFilter === 'RESOLVED' && !['APPROVED', 'FALSE_POSITIVE', 'ESCALATED', 'RESOLVED'].includes(alert.status)) return false;
 
       // Search
       if (this.searchTerm) {
@@ -324,9 +549,34 @@ class SentryFraudConsole {
     });
 
     container.innerHTML = '';
+    this.renderBulkBar();
+    container.setAttribute('aria-busy', String(this.queueLoad === 'loading'));
+    const countEl = document.getElementById('queueCountBadge');
+
+    if (this.queueLoad === 'loading') {
+      container.innerHTML = '<div class="queue-state" role="status"><div class="queue-skeleton"></div><div class="queue-skeleton"></div><div class="queue-skeleton"></div><span class="queue-state-copy">Loading alerts…</span></div>';
+      if (countEl) countEl.textContent = 'Loading';
+      return;
+    }
+    if (this.queueLoad === 'error') {
+      container.innerHTML = `<div class="queue-state is-error" role="alert"><strong>Queue failed to load</strong><span class="queue-state-copy">${this.queueError || 'The alert service did not respond.'}</span><button type="button" class="queue-tool-btn" id="queueRetry">Retry</button></div>`;
+      container.querySelector('#queueRetry').addEventListener('click', () => this.loadQueue());
+      if (countEl) countEl.textContent = 'Offline';
+      return;
+    }
 
     if (filtered.length === 0) {
-      container.innerHTML = `<div class="queue-empty">No alerts matching current filter.</div>`;
+      container.innerHTML = `<div class="queue-empty"><span>No alerts match the current filter.</span><button type="button" class="queue-tool-btn" id="queueClearFilters">Clear filters</button></div>`;
+      container.querySelector('#queueClearFilters').addEventListener('click', () => {
+        this.currentFilter = 'ALL';
+        this.searchTerm = '';
+        const search = document.getElementById('alertSearchInput');
+        if (search) search.value = '';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-filter') === 'ALL'));
+        document.querySelectorAll('.filter-btn').forEach(b => b.setAttribute('aria-pressed', String(b.classList.contains('active'))));
+        this.renderAlertQueue();
+      });
+      if (countEl) countEl.textContent = '0 Alerts';
       return;
     }
 
@@ -338,7 +588,7 @@ class SentryFraudConsole {
       let statusBadge = '';
       if (alert.status === 'HIGH_RISK') {
         statusBadge = `<span class="badge-status badge-danger">RISK ${alert.riskSpectrum.totalScore}</span>`;
-      } else if (alert.ruleConflict) {
+      } else if (alert.ruleConflict && alert.status === 'RULE_CONFLICT') {
         statusBadge = `<span class="badge-status badge-conflict">RULE CONFLICT</span>`;
       } else if (alert.status === 'NEEDS_VERIFICATION') {
         statusBadge = `<span class="badge-status badge-warning">VERIFY</span>`;
@@ -347,12 +597,16 @@ class SentryFraudConsole {
       } else if (alert.status === 'APPROVED' || alert.status === 'RESOLVED') {
         statusBadge = `<span class="badge-status badge-clean">RESOLVED</span>`;
       } else {
-        statusBadge = `<span class="badge-status badge-neutral">${alert.status}</span>`;
+        statusBadge = `<span class="badge-status badge-neutral">${alert.status.replaceAll('_', ' ')}</span>`;
       }
+      const selectBox = this.bulkMode
+        ? `<input type="checkbox" class="queue-select-box" aria-label="Select ${alert.id}" ${this.bulkSelection.has(alert.id) ? 'checked' : ''}>`
+        : '';
+      const assigneeLine = alert.assignee ? `<span class="alert-card-assignee">Assignee: ${alert.assignee}</span>` : '';
 
       card.innerHTML = `
         <div class="alert-card-top">
-          <span class="alert-card-id mono">${alert.id}</span>
+          <span class="alert-card-select">${selectBox}<span class="alert-card-id mono">${alert.id}</span></span>
           ${statusBadge}
         </div>
         <div class="alert-card-cust">${alert.customer.name}</div>
@@ -362,7 +616,18 @@ class SentryFraudConsole {
           <span class="alert-card-rule mono">${alert.triggeredRules[0] ? alert.triggeredRules[0].name : 'BASELINE'}</span>
           <span class="alert-card-time mono">${alert.transaction.timestamp.split('(')[1].replace(')', '')}</span>
         </div>
+        ${assigneeLine}
       `;
+      const box = card.querySelector('.queue-select-box');
+      if (box) {
+        box.addEventListener('click', event => event.stopPropagation());
+        box.addEventListener('keydown', event => event.stopPropagation());
+        box.addEventListener('change', () => {
+          if (box.checked) this.bulkSelection.add(alert.id);
+          else this.bulkSelection.delete(alert.id);
+          this.renderBulkBar();
+        });
+      }
 
       card.addEventListener('click', () => {
         this.activeAlertId = alert.id;
@@ -375,7 +640,6 @@ class SentryFraudConsole {
     });
 
     // Update queue count pill
-    const countEl = document.getElementById('queueCountBadge');
     if (countEl) countEl.textContent = `${filtered.length} Alerts`;
   }
 
@@ -406,7 +670,7 @@ class SentryFraudConsole {
     // Customer Identity Summary in Header Strip
     const custInfoEl = document.getElementById('evidenceCustomerInfo');
     if (custInfoEl) {
-      custInfoEl.innerHTML = `<span class="bold text-white">${alert.customer.name}</span> <span class="text-muted">(${alert.customer.id})</span> · <span class="badge-tag tag-clean">${alert.customer.trustTier}</span> · Age: ${alert.customer.accountAge} · Vol: ${alert.customer.lifetimeVolume}`;
+      custInfoEl.innerHTML = `<a class="bold evidence-cust-link" href="#customers/${encodeURIComponent(alert.customer.id)}">${alert.customer.name}</a> <span class="text-muted">(${alert.customer.id})</span> <span class="badge-tag tag-clean">${alert.customer.trustTier}</span> <span>Age ${alert.customer.accountAge}</span> <span>Vol ${alert.customer.lifetimeVolume}</span>`;
     }
 
     // Render Visual Diagrams via SentryVisuals (Visual-First Architecture)
@@ -539,6 +803,7 @@ class SentryFraudConsole {
     this.resetDecisionGuard();
     this.updateRationaleValidation();
     this.syncDecisionPanelState(alert);
+    this.renderEvidenceActions();
   }
 
   renderRiskSpectrum(spectrum) {
@@ -561,7 +826,7 @@ class SentryFraudConsole {
 
       pill.innerHTML = `
         <span class="spectrum-cat">${iconSvg}<span class="spectrum-dot" style="background-color: ${color};"></span>${label}</span>
-        <span class="spectrum-pts mono bold" style="color: ${color};">${score >= 0 ? '+' : ''}${score}</span>
+        <span class="spectrum-pts mono bold" style="color: ${/fe678a/i.test(color) ? 'var(--risk-high-text)' : 'var(--accent-blue-text)'};">${score >= 0 ? '+' : ''}${score}</span>
       `;
       container.appendChild(pill);
     });
@@ -675,7 +940,7 @@ class SentryFraudConsole {
         message.textContent = `${meaningful.length}/${this.decisionMinRationaleLength} rationale characters — add the evidence and reasoning behind the action.`;
         message.className = 'rationale-validation-message is-error';
       } else {
-        message.textContent = `Rationale ready · ${meaningful.length} characters of analyst reasoning.`;
+        message.textContent = `Rationale ready: ${meaningful.length} characters of analyst reasoning.`;
         message.className = 'rationale-validation-message is-valid';
       }
     }
@@ -703,6 +968,9 @@ class SentryFraudConsole {
     const ack = document.getElementById('decisionEvidenceAck');
     const confirm = document.getElementById('btnConfirmDecision');
     if (panel) panel.hidden = true;
+    const commitError = document.getElementById('decisionCommitError');
+    if (commitError) commitError.hidden = true;
+    if (confirm) confirm.textContent = 'Commit decision';
     if (ack) ack.checked = false;
     if (confirm) confirm.disabled = true;
     this.pendingDecision = null;
@@ -744,6 +1012,10 @@ class SentryFraudConsole {
 
     const validation = this.validateDecisionRationale({ focus: true });
     if (!validation.valid) {
+      const noteArea = document.getElementById('analystNoteInput');
+      const message = document.getElementById('rationaleValidationMessage');
+      if (noteArea) noteArea.setAttribute('aria-invalid', 'true');
+      if (message) message.textContent = `Rationale required before ${this.getDecisionLabel(verdict)}. Explain the evidence and reasoning in at least ${this.decisionMinRationaleLength} characters.`;
       this.showToast('Add a meaningful analyst rationale before staging this decision.');
       return;
     }
@@ -802,11 +1074,44 @@ class SentryFraudConsole {
       return;
     }
 
-    this.executeDecision(pending.verdict, pending.rationale, { ...pending, evidenceReviewAcknowledged: true });
+    if (this.commitInFlight) return;
+    const confirm = document.getElementById('btnConfirmDecision');
+    const cancel = document.getElementById('btnCancelDecision');
+    const noteArea = document.getElementById('analystNoteInput');
+    const errorBox = document.getElementById('decisionCommitError');
+    if (errorBox) errorBox.hidden = true;
+    this.commitInFlight = true;
+    if (confirm) { confirm.disabled = true; confirm.textContent = 'Committing…'; confirm.setAttribute('aria-busy', 'true'); }
+    if (cancel) cancel.disabled = true;
+    if (noteArea) noteArea.readOnly = true;
+
+    const finish = () => {
+      this.commitInFlight = false;
+      if (confirm) { confirm.textContent = 'Commit decision'; confirm.removeAttribute('aria-busy'); }
+      if (cancel) cancel.disabled = false;
+    };
+    const request = this.store ? this.store.request('Writing the decision to the audit ledger', null) : Promise.resolve();
+    return request.then(() => {
+      finish();
+      this.executeDecision(pending.verdict, pending.rationale, { ...pending, evidenceReviewAcknowledged: true });
+    }).catch(error => {
+      finish();
+      if (noteArea) noteArea.readOnly = false;
+      if (confirm) { confirm.disabled = !(ack && ack.checked); confirm.textContent = 'Retry commit'; }
+      if (errorBox) {
+        errorBox.textContent = `Audit write failed. ${error.message} Your rationale and acknowledgement are preserved; retry or cancel.`;
+        errorBox.hidden = false;
+      }
+      const status = document.getElementById('decisionSafetyStatus');
+      if (status) {
+        status.textContent = 'Decision NOT committed. Auto-advance is blocked until the audit write succeeds.';
+        status.className = 'decision-safety-status is-error';
+      }
+    });
   }
 
   executeDecision(verdict, noteText, context = {}) {
-    const alert = this.alerts.find(a => a.id === this.activeAlertId);
+    const alert = this.alerts.find(a => a.id === (context.alertId || this.activeAlertId));
     if (!alert) return false;
     if (this.isFinalDecisionStatus(alert.status)) {
       this.showToast(`Decision already committed for ${alert.id}.`);
@@ -842,12 +1147,17 @@ class SentryFraudConsole {
       actor: `${SENTRY_DATA.systemMetrics.analyst} (${SENTRY_DATA.systemMetrics.analystRole})`,
       entity: `${alert.id} / ${alert.customer.id}`,
       action: verdict,
-      rationale: rationaleParts.join(' · '),
+      rationale: rationaleParts.join('; '),
       verdict: verdict === 'FROZEN' ? 'CONFIRMED_FRAUD' : (verdict === 'APPROVED' ? 'ALLOWED_CLEAN' : verdict),
       riskScoreAfter: alert.riskSpectrum.totalScore
     };
 
+    if (this.store) newAudit.id = this.store.nextId('audit', 'AUD-');
     this.auditLog.unshift(newAudit);
+    if (this.store) {
+      this.store.save();
+      document.dispatchEvent(new CustomEvent('sentry:store', { detail: { label: 'decision' } }));
+    }
     this.resetDecisionGuard();
     this.showToast(`Case ${alert.id} resolved: ${verdict} recorded with analyst rationale.`);
 
@@ -873,7 +1183,7 @@ class SentryFraudConsole {
     if (!container) return;
 
     container.innerHTML = '';
-    SENTRY_DATA.rulesInventory.forEach(rule => {
+    (this.store ? this.store.state.rules : SENTRY_DATA.rulesInventory).forEach(rule => {
       const card = document.createElement('div');
       card.className = `inventory-rule-card ${rule.hasConflictNotice ? 'has-conflict' : ''}`;
       card.innerHTML = `
@@ -927,7 +1237,7 @@ class SentryFraudConsole {
       <div class="analytics-stat-card">
         <div class="analytics-lbl">EVIDENCE STATUS</div>
         <div class="analytics-val mono text-warning">NOT MEASURED</div>
-        <div class="analytics-sub mono">0 verified DIRECT_USER · 0 verified PROXY sessions</div>
+        <div class="analytics-sub mono">0 verified DIRECT_USER, 0 verified PROXY sessions</div>
       </div>
       <div class="analytics-stat-card">
         <div class="analytics-lbl">PREVENTED FRAUD LOSS</div>
@@ -947,7 +1257,7 @@ class SentryFraudConsole {
       <div class="analytics-stat-card">
         <div class="analytics-lbl">RULE CONFLICT INCIDENCE</div>
         <div class="analytics-val mono text-warning">SCENARIO ONLY</div>
-        <div class="analytics-sub mono">Synthetic dataset for prototype stress testing · not production telemetry</div>
+        <div class="analytics-sub mono">Synthetic dataset for prototype stress testing, not production telemetry</div>
       </div>
     `;
   }
@@ -970,12 +1280,7 @@ class SentryFraudConsole {
         <td><button class="btn-inspect-cust" data-alert="${a.id}">VIEW EVIDENCE</button></td>
       `;
 
-      tr.querySelector('.btn-inspect-cust').addEventListener('click', () => {
-        this.activeAlertId = a.id;
-        this.switchView('queue');
-        this.renderAlertQueue();
-        this.renderActiveAlert();
-      });
+      tr.querySelector('.btn-inspect-cust').addEventListener('click', () => this.navigate('queue', a.id));
 
       tbody.appendChild(tr);
     });
