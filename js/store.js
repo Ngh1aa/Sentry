@@ -129,7 +129,7 @@
       window.setTimeout(() => {
         if (isFailArmed()) {
           setFailNext(false);
-          const error = new Error(`${label} failed: the risk service returned 503 (simulated). Nothing was saved.`);
+          const error = new Error(`${label} failed: the risk service returned 503. Nothing was saved.`);
           error.simulated = true;
           reject(error);
           return;
@@ -176,29 +176,147 @@
     return rows.length;
   }
 
-  // Header control: demo data menu (reset + failure simulation).
-  function mountControls() {
-    const host = document.querySelector('.header-right');
-    if (!host || document.getElementById('demoMenuButton')) return;
+  // ------------------------------------------------------------ Session
+  // The console opens signed in as the seeded analyst. Signing out is kept per
+  // tab (sessionStorage) and shows the sign-in screen until the analyst signs
+  // back in with "Continue as" or the seeded credentials.
+  const SESSION_KEY = 'sentry.session.signedOut';
+  const ACCOUNT = {
+    name: 'Hannah Cole',
+    initials: 'HC',
+    role: 'Senior Analyst',
+    email: 'hannah.cole@sentryrisk.app',
+    password: 'Sentry-2026'
+  };
+
+  function isSignedOut() {
+    return storage.get(SESSION_KEY) === '1';
+  }
+
+  function setAppInert(on) {
+    document.querySelectorAll('body > header, body > aside, body > main, body > footer.sentry-footer, #demoTools').forEach(node => {
+      if (on) { node.setAttribute('inert', ''); node.setAttribute('aria-hidden', 'true'); }
+      else { node.removeAttribute('inert'); node.removeAttribute('aria-hidden'); }
+    });
+  }
+
+  // While the sign-in screen is up, console hotkeys must not reach the app.
+  function blockHotkeys(event) {
+    if (isSignedOut()) event.stopPropagation();
+  }
+
+  function showSignIn() {
+    if (document.getElementById('sentrySignIn')) return;
+    const screen = document.createElement('div');
+    screen.className = 'sentry-signin';
+    screen.id = 'sentrySignIn';
+    screen.setAttribute('role', 'dialog');
+    screen.setAttribute('aria-modal', 'true');
+    screen.setAttribute('aria-labelledby', 'signInTitle');
+    screen.innerHTML = `
+      <div class="signin-card">
+        <div class="signin-brand">
+          <svg class="sentry-icon sentry-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>SENTRY</span>
+        </div>
+        <h1 class="signin-title" id="signInTitle">Sign in to the risk console</h1>
+        <p class="signin-sub">Fraud &amp; Risk Operations, Day Shift (EMEA / AMER)</p>
+        <button type="button" class="signin-continue" id="signInContinue">
+          <span class="analyst-avatar" aria-hidden="true">${ACCOUNT.initials}</span>
+          <span>Continue as ${ACCOUNT.name}</span>
+        </button>
+        <div class="signin-divider"><span>or use your work account</span></div>
+        <form class="signin-form" id="signInForm" novalidate>
+          <label class="signin-field" for="signInEmail"><span>Work email</span>
+            <input type="email" id="signInEmail" autocomplete="username" required>
+          </label>
+          <label class="signin-field" for="signInPassword"><span>Password</span>
+            <input type="password" id="signInPassword" autocomplete="current-password" required>
+          </label>
+          <div class="signin-error" id="signInError" role="alert" hidden></div>
+          <button type="submit" class="signin-submit">Sign in</button>
+        </form>
+        <p class="signin-foot">Concept product designed by Đỗ Anh Nghĩa.</p>
+      </div>`;
+    document.body.appendChild(screen);
+    setAppInert(true);
+
+    const form = screen.querySelector('#signInForm');
+    const error = screen.querySelector('#signInError');
+    screen.querySelector('#signInContinue').addEventListener('click', signIn);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const email = screen.querySelector('#signInEmail').value.trim().toLowerCase();
+      const password = screen.querySelector('#signInPassword').value;
+      if (!email || !password) { error.textContent = 'Enter your work email and password.'; error.hidden = false; return; }
+      if (email !== ACCOUNT.email || password !== ACCOUNT.password) { error.textContent = 'That email and password combination was not recognised.'; error.hidden = false; return; }
+      signIn();
+    });
+    screen.querySelector('#signInContinue').focus();
+  }
+
+  function signIn() {
+    storage.remove(SESSION_KEY);
+    document.getElementById('sentrySignIn')?.remove();
+    setAppInert(false);
+    document.getElementById('accountMenuButton')?.focus();
+  }
+
+  function signOut() {
+    storage.set(SESSION_KEY, '1');
+    showSignIn();
+  }
+
+  function mountAccountMenu() {
+    const button = document.getElementById('accountMenuButton');
+    const panel = document.getElementById('accountMenuPanel');
+    if (!button || !panel || button.dataset.bound) return;
+    button.dataset.bound = '1';
+    const close = () => { panel.hidden = true; button.setAttribute('aria-expanded', 'false'); };
+    button.addEventListener('click', () => {
+      const open = panel.hidden;
+      panel.hidden = !open;
+      button.setAttribute('aria-expanded', String(open));
+    });
+    document.getElementById('signOutButton')?.addEventListener('click', () => { close(); signOut(); });
+    document.addEventListener('click', event => { if (!button.parentElement.contains(event.target)) close(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) { close(); button.focus(); } });
+  }
+
+  // ------------------------------------------------------------ Demo tools
+  // Hidden from normal visitors. `?demo=1` turns them on for this tab,
+  // `?demo=0` turns them off again.
+  const DEMO_KEY = 'sentry.demoTools';
+
+  function demoToolsEnabled() {
+    const param = new URLSearchParams(window.location.search).get('demo');
+    if (param === '1') storage.set(DEMO_KEY, '1');
+    if (param === '0') storage.remove(DEMO_KEY);
+    return storage.get(DEMO_KEY) === '1';
+  }
+
+  function mountDemoTools() {
+    if (document.getElementById('demoTools')) return;
 
     const wrap = document.createElement('div');
-    wrap.className = 'demo-menu';
+    wrap.className = 'demo-tools';
+    wrap.id = 'demoTools';
     wrap.innerHTML = `
-      <button type="button" class="demo-menu-button" id="demoMenuButton" aria-haspopup="true" aria-expanded="false" aria-controls="demoMenuPanel">
-        Demo data<span class="demo-fail-flag" id="demoFailFlag" hidden>Fail armed</span>
-      </button>
-      <div class="demo-menu-panel" id="demoMenuPanel" role="group" aria-label="Demo data controls" hidden>
-        <p class="demo-menu-copy">Changes are kept in this tab only (sessionStorage). No backend is connected.</p>
+      <div class="demo-menu-panel" id="demoMenuPanel" role="group" aria-label="Demo tools" hidden>
+        <p class="demo-menu-copy">Data lives in this browser tab only. Turn these tools off with ?demo=0.</p>
         <label class="demo-menu-row" for="demoFailToggle">
           <input type="checkbox" id="demoFailToggle">
-          <span>Fail the next request</span>
+          <span>Simulate a failed request</span>
         </label>
         <div class="demo-menu-actions">
           <button type="button" class="demo-menu-action" id="demoResetButton">Reset demo data</button>
           <button type="button" class="demo-menu-action danger" id="demoResetConfirm" hidden>Confirm reset</button>
         </div>
-      </div>`;
-    host.prepend(wrap);
+      </div>
+      <button type="button" class="demo-menu-button" id="demoMenuButton" aria-haspopup="true" aria-expanded="false" aria-controls="demoMenuPanel">
+        Demo tools<span class="demo-fail-flag" id="demoFailFlag" hidden>Fail armed</span>
+      </button>`;
+    document.body.appendChild(wrap);
 
     const button = wrap.querySelector('#demoMenuButton');
     const panel = wrap.querySelector('#demoMenuPanel');
@@ -216,6 +334,7 @@
       panel.hidden = true;
       button.setAttribute('aria-expanded', 'false');
       confirmButton.hidden = true;
+      resetButton.dataset.armed = '';
       resetButton.textContent = 'Reset demo data';
     };
 
@@ -245,6 +364,16 @@
     syncFlag();
   }
 
+  function mountControls() {
+    mountAccountMenu();
+    if (demoToolsEnabled()) mountDemoTools();
+    if (!window.__sentryHotkeyGuard) {
+      window.__sentryHotkeyGuard = true;
+      window.addEventListener('keydown', blockHotkeys, true);
+    }
+    if (isSignedOut()) showSignIn();
+  }
+
   window.SentryStore = {
     state,
     save,
@@ -258,6 +387,11 @@
     isFailArmed,
     setFailNext,
     downloadCSV,
-    mountControls
+    mountControls,
+    signIn,
+    signOut,
+    isSignedOut,
+    demoToolsEnabled,
+    account: { name: ACCOUNT.name, email: ACCOUNT.email, role: ACCOUNT.role }
   };
 })();

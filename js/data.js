@@ -4,7 +4,7 @@
 const SENTRY_DATA = {
   systemMetrics: {
     shift: "Day Operations (EMEA / AMER)",
-    analyst: "Đỗ Anh Nghĩa",
+    analyst: "Hannah Cole",
     analystRole: "Senior Fraud Analyst (L3)",
     openAlertsCount: 24,
     criticalQueueCount: 8,
@@ -403,7 +403,7 @@ const SENTRY_DATA = {
     {
       id: "AUD-99120",
       timestamp: "2026-09-16 01:22:14 UTC",
-      actor: "Đỗ Anh Nghĩa (Senior Analyst)",
+      actor: "Hannah Cole (Senior Analyst)",
       entity: "ALT-8919 / CUST-10492",
       action: "PERMANENT_FREEZE_ACCOUNT",
       rationale: "Carding bot swarm confirmed. 48 rapid attempts with disposable email domain and datacenter proxy.",
@@ -435,12 +435,12 @@ const SENTRY_DATA = {
 
 // ---------------------------------------------------------------------------
 // Workflow seed (cases, customers, extra ledger rows, analytics series).
-// This file is the single seed for the demo store (js/store.js). User changes
+// This file is the single seed for the local data store (js/store.js). User changes
 // are written to sessionStorage and never back into this file.
 // ---------------------------------------------------------------------------
 SENTRY_DATA.cases = [
-  { id: "CASE-4401", alertIds: ["ALT-8921"], priority: "P0 CRITICAL", status: "UNDER_REVIEW", owner: "Đỗ Anh Nghĩa", queue: "ATO / Wire", sla: "08m 14s", opened: "18m ago", customerId: "CUST-90412", customer: "Eleanor Vance", amount: "$8,450.00", risk: 94, title: "NEW BENEFICIARY AMOUNT GT 5K", summary: "Instant External Wire to Panama Global Vault Remit SA", notes: [], evidence: [], resolution: null },
-  { id: "CASE-4402", alertIds: ["ALT-8920"], priority: "P1 CONFLICT", status: "CONFLICT_TRIAGE", owner: "Đỗ Anh Nghĩa", queue: "VIP Exceptions", sla: "32m 00s", opened: "24m ago", customerId: "CUST-38109", customer: "Marcus Aurelius Thorne", amount: "€4,200.00", risk: 62, title: "FOREIGN MCC LUXURY HOLD", summary: "Card present POS at Hôtel Plaza Athénée Paris", notes: [], evidence: [], resolution: null },
+  { id: "CASE-4401", alertIds: ["ALT-8921"], priority: "P0 CRITICAL", status: "UNDER_REVIEW", owner: "Hannah Cole", queue: "ATO / Wire", sla: "08m 14s", opened: "18m ago", customerId: "CUST-90412", customer: "Eleanor Vance", amount: "$8,450.00", risk: 94, title: "NEW BENEFICIARY AMOUNT GT 5K", summary: "Instant External Wire to Panama Global Vault Remit SA", notes: [], evidence: [], resolution: null },
+  { id: "CASE-4402", alertIds: ["ALT-8920"], priority: "P1 CONFLICT", status: "CONFLICT_TRIAGE", owner: "Hannah Cole", queue: "VIP Exceptions", sla: "32m 00s", opened: "24m ago", customerId: "CUST-38109", customer: "Marcus Aurelius Thorne", amount: "€4,200.00", risk: 62, title: "FOREIGN MCC LUXURY HOLD", summary: "Card present POS at Hôtel Plaza Athénée Paris", notes: [], evidence: [], resolution: null },
   { id: "CASE-4403", alertIds: ["ALT-8919"], priority: "P0 AUTO", status: "CONTAINED", owner: "SENTRY Autopilot", queue: "Carding Swarm", sla: "COMPLETED", opened: "41m ago", customerId: "CUST-10492", customer: "Devon Bradley", amount: "$14.99", risk: 99, title: "CARDING VELOCITY RAPID FIRE", summary: "48 micro-transactions at Steam Games Store", notes: [], evidence: [], resolution: null },
   { id: "CASE-4398", alertIds: [], priority: "P1 HIGH", status: "PENDING_EVIDENCE", owner: "Mina Patel", queue: "Account Defense", sla: "51m 20s", opened: "11m ago", customerId: "CUST-77219", customer: "Sarah Keene", amount: "$12,840.00", risk: 81, title: "SESSION TAKEOVER, DEVICE RESET", summary: "Credential reset followed by high-value equipment purchase",
     drivers: [{ category: "Device reset", score: 29 }, { category: "Credential change", score: 25 }, { category: "Spend anomaly", score: 27 }],
@@ -469,9 +469,9 @@ SENTRY_DATA.auditLog.push(
   { id: "AUD-99115", timestamp: "2026-09-15 23:18:44 UTC", actor: "SENTRY Auth Gateway", entity: "CUST-66104", action: "STEP_UP_PASSED", rationale: "Biometric challenge completed on a previously trusted mobile device.", verdict: "ALLOWED_CLEAN", riskScoreAfter: 18 }
 );
 
-// Synthetic daily scenario series: 90 days ending on the scenario date.
+// Daily operational series: 90 days ending on the scenario date.
 // Deterministic (seeded PRNG) so every reset produces identical numbers.
-// Scenario-only: these are not validated product outcomes.
+// Seeded series used by the analytics workspace.
 SENTRY_DATA.analyticsDaily = (() => {
   let seed = 4401;
   const rand = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };

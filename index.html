@@ -56,9 +56,17 @@
         <span class="shift-status-dot"></span>
         <span>Day Shift (EMEA / AMER)</span>
       </div>
-      <div class="analyst-badge">
-        <div class="analyst-avatar">DN</div>
-        <span>Đỗ Anh Nghĩa (Senior Analyst)</span>
+      <div class="account-menu">
+        <button type="button" class="analyst-badge" id="accountMenuButton" aria-haspopup="true" aria-expanded="false" aria-controls="accountMenuPanel">
+          <span class="analyst-avatar" aria-hidden="true">HC</span>
+          <span>Hannah Cole (Senior Analyst)</span>
+        </button>
+        <div class="account-menu-panel" id="accountMenuPanel" role="group" aria-label="Account" hidden>
+          <div class="account-menu-name">Hannah Cole</div>
+          <div class="account-menu-meta">Senior Fraud Analyst (L3)</div>
+          <div class="account-menu-meta mono">hannah.cole@sentryrisk.app</div>
+          <button type="button" class="account-menu-action" id="signOutButton">Sign out</button>
+        </div>
       </div>
       <div class="system-status-indicator" title="Console Core Engine Active">
         <span class="pulse-dot"></span>
@@ -68,22 +76,18 @@
   </header>
 
   <!-- Sub-Header KPI Ticker -->
-  <aside class="sentry-kpi-strip" aria-label="Prototype operational telemetry — synthetic scenario data">
+  <aside class="sentry-kpi-strip" aria-label="Shift overview">
     <div class="kpi-block">
       <span class="kpi-lbl">Queue Workload:</span>
       <span class="kpi-val text-danger" id="kpiOpenAlerts">24 Pending Reviews</span>
     </div>
     <div class="kpi-block">
-      <span class="kpi-lbl">Decision Time Evidence:</span>
-      <span class="kpi-val text-warning">Not measured, Round 01 pending</span>
+      <span class="kpi-lbl">Decision SLA:</span>
+      <span class="kpi-val">15 min (P0) / 60 min (P1)</span>
     </div>
     <div class="kpi-block">
-      <span class="kpi-lbl">False Positive Evidence:</span>
-      <span class="kpi-val text-warning">Not measured, 0 verified sessions</span>
-    </div>
-    <div class="kpi-block">
-      <span class="kpi-lbl">Autonomous Intercepts:</span>
-      <span class="kpi-val">Illustrative scenario data</span>
+      <span class="kpi-lbl">Step-up Channels:</span>
+      <span class="kpi-val">App push, SMS OTP</span>
     </div>
     <div class="kpi-block">
       <span class="kpi-lbl">Risk Appetite Threshold:</span>
@@ -360,7 +364,7 @@
               <td class="mono-cell">CASE-4401</td>
               <td><span class="badge-status badge-danger">CRITICAL (P0)</span></td>
               <td class="bold">Eleanor Vance (CUST-90412)</td>
-              <td>Đỗ Anh Nghĩa</td>
+              <td>Hannah Cole</td>
               <td class="mono-cell">1 Alert ($8,450.00 Wire)</td>
               <td class="mono-cell text-danger">08m 14s</td>
               <td><span class="badge-status badge-danger">UNDER_REVIEW</span></td>
@@ -369,7 +373,7 @@
               <td class="mono-cell">CASE-4402</td>
               <td><span class="badge-status badge-conflict">RULE_CONFLICT (P1)</span></td>
               <td class="bold">Marcus Aurelius Thorne (VIP)</td>
-              <td>Đỗ Anh Nghĩa</td>
+              <td>Hannah Cole</td>
               <td class="mono-cell">1 Alert (€4,200.00 POS)</td>
               <td class="mono-cell">32m 00s</td>
               <td><span class="badge-status badge-conflict">CONFLICT_TRIAGE</span></td>
@@ -460,6 +464,8 @@
     </section>
 
   </main>
+
+  <footer class="sentry-footer">Concept product designed by Đỗ Anh Nghĩa.</footer>
 
   <!-- Scripts -->
   <script src="js/icons.js"></script>

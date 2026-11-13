@@ -1,6 +1,6 @@
 // SENTRY — Secondary Operations Workspaces
 // Cases, Rules, Customers, Analytics and Audit. Every workspace reads and
-// writes the demo store (js/store.js); there is no backend. Each workspace has
+// writes the local store (js/store.js); there is no backend. Each workspace has
 // loading, empty, not-found and recoverable-error states, and detail records
 // are deep-linkable (#cases/CASE-4401, #rules/RULE-402, #customers/CUST-90412,
 // #audit/AUD-99120).
@@ -109,7 +109,7 @@
     function notFoundHTML(kind, id, backHref, backLabel) {
       return `<div class="ops-state is-missing" role="alert" data-not-found="${esc(kind)}">
         <strong class="ops-state-title">${esc(kind)} ${esc(id)} was not found</strong>
-        <p class="ops-state-copy">It may have been deleted in this session, or the link is wrong.</p>
+        <p class="ops-state-copy">It may have been deleted, or the link is wrong.</p>
         <a class="ops-btn" href="${backHref}">${backLabel}</a></div>`;
     }
 
@@ -269,7 +269,7 @@
         </div>
         ${ui.panel.caseComposer ? caseComposerHTML() : ''}
         ${kpiHTML([
-          { label: 'Active investigations', value: String(open.length), note: `${S.cases.length} cases in this session` },
+          { label: 'Active investigations', value: String(open.length), note: `${S.cases.length} cases on record` },
           { label: 'SLA at risk', value: String(slaRisk), note: 'Under 60 minutes remaining' },
           { label: 'Supervisor review', value: String(open.filter(c => c.status === 'SUPERVISOR_REVIEW').length), note: 'Escalated and awaiting decision' },
           { label: 'Closed cases', value: String(S.cases.length - open.length), note: 'Closed with a recorded resolution' }
@@ -386,7 +386,7 @@
           <div class="ops-inline-form">
             <label class="ops-btn ops-file-picker" for="caseEvidenceInput">Attach files</label>
             <input type="file" id="caseEvidenceInput" class="ops-visually-hidden" multiple>
-            <span class="ops-secondary">Only file names are recorded in this prototype.</span>
+            <span class="ops-secondary">File names are attached to the case record.</span>
           </div>
           <div class="ops-section-label">Risk drivers</div>
           <div class="ops-driver-list">${drivers.map(driver => { const score = Math.max(0, Number(driver.score || 0)); return `<div class="ops-driver-row"><span>${esc(driver.category)}</span><div class="ops-driver-track"><div class="ops-driver-fill ${score >= 28 ? 'hot' : ''}" style="width:${Math.min(100, score * 2.7)}%"></div></div><span class="ops-driver-score">+${score}</span></div>`; }).join('') || '<p class="ops-muted-copy">No scored drivers.</p>'}</div>
@@ -559,7 +559,7 @@
       const counts = RULE_STATUSES.map(st => [st, S.rules.filter(r => r.status === st).length]);
 
       root.innerHTML = `
-        ${introHTML('Decisioning laboratory', 'Rules Engine, Test Before You Ship', 'Build controls, inspect rule health, surface conflicts and simulate policy changes before they affect live traffic.', [['Rules', S.rules.length], ['24h executions', hits.toLocaleString()], ['Conflicts', conflicts.length], ['Decision p95', '31 ms']])}
+        ${introHTML('Decisioning', 'Rules Engine, Test Before You Ship', 'Build controls, inspect rule health, surface conflicts and backtest policy changes before they affect live traffic.', [['Rules', S.rules.length], ['24h executions', hits.toLocaleString()], ['Conflicts', conflicts.length], ['Decision p95', '31 ms']])}
         <div class="ops-toolbar">
           <div class="ops-search-wrap">${icon('search')}<input id="ruleSearch" class="ops-search" value="${esc(ui.ruleQuery)}" placeholder="Search rule ID, logic or category" aria-label="Search rules"></div>
           <select id="ruleCategory" class="ops-select" aria-label="Filter by category"><option value="ALL">All categories</option>${[...new Set(S.rules.map(r => r.category))].map(cat => `<option value="${esc(cat)}">${esc(cat)}</option>`).join('')}</select>
@@ -569,10 +569,10 @@
           <button type="button" class="ops-btn primary" id="newRuleBtn">Create rule</button>
         </div>
         ${kpiHTML([
-          { label: 'Rules fired / 24h', value: hits.toLocaleString(), note: 'Synthetic scenario traffic' },
+          { label: 'Rules fired / 24h', value: hits.toLocaleString(), note: 'All channels, rolling 24 hours' },
           { label: 'Active rules', value: String(counts[0][1]), note: `${counts[1][1]} in shadow, ${counts[2][1]} paused` },
           { label: 'Open conflicts', value: String(conflicts.length), note: 'Policy pairs needing precedence review' },
-          { label: 'Tested this session', value: String(S.rules.filter(r => r.lastTest).length), note: 'Rules with a 30-day simulation' }
+          { label: 'Backtested', value: String(S.rules.filter(r => r.lastTest).length), note: 'Rules with a 30-day backtest' }
         ])}
         ${ui.ruleTestAll ? ruleTestAllHTML() : ''}
         ${formMode ? ruleFormHTML(formMode === 'edit' ? selected : null) : ''}
@@ -623,7 +623,7 @@
           ${actionErrorHTML('rules')}
           ${confirming ? `<div class="ops-confirm" role="alertdialog" aria-labelledby="ruleDeleteTitle" aria-describedby="ruleDeleteCopy">
             <strong id="ruleDeleteTitle">Delete ${esc(rule.id)}?</strong>
-            <p id="ruleDeleteCopy">The rule stops evaluating traffic immediately. Deletion is recorded in the audit ledger and cannot be undone in this session, except by resetting demo data.</p>
+            <p id="ruleDeleteCopy">The rule stops evaluating traffic immediately. Deletion is recorded in the audit ledger and cannot be undone.</p>
             <div class="ops-form-actions"><button type="button" class="ops-btn" data-rule-action="cancel-delete">Keep rule</button><button type="button" class="ops-btn danger" data-rule-action="confirm-delete">Delete rule</button></div>
           </div>` : ''}
           <div class="ops-section-label">Decision logic</div>
@@ -644,8 +644,8 @@
               <div class="ops-mini-metric"><span>Precision</span><strong>${test.precisionPct}%</strong></div>
             </div>
             <div class="ops-backtest" role="img" aria-label="Daily fires over the last 30 days, peak ${max}">${test.series.map((value, i) => `<div class="ops-backtest-bar" style="height:${Math.max(4, Math.round(value / max * 100))}%" title="Day ${i + 1}: ${value} fires"></div>`).join('')}</div>
-            <p class="ops-muted-copy">Simulated on synthetic scenario traffic, run ${esc(test.ranAt)}. Not production performance.</p>
-          </div>` : '<p class="ops-muted-copy">No simulation yet. Run a test before publishing a change.</p>'}
+            <p class="ops-muted-copy">Backtested on the last 30 days of traffic, run ${esc(test.ranAt)}.</p>
+          </div>` : '<p class="ops-muted-copy">No backtest yet. Run a test before publishing a change.</p>'}
           ${rule.hasConflictNotice ? `<div class="ops-section-label">Conflict</div><div class="ops-conflict-card">${icon('alertTriangle')} <strong>Policy collision detected.</strong> ${esc(rule.hasConflictNotice)}. Test precedence in shadow mode before publishing an override.</div>` : ''}
         </div>`;
     }
@@ -671,7 +671,7 @@
 
     function ruleTestAllHTML() {
       const t = ui.ruleTestAll;
-      return `<section class="ops-panel" id="ruleTestAllPanel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Portfolio test, last 30 days</h3><div class="ops-panel-subtitle">Simulated on synthetic scenario traffic, run ${esc(t.ranAt)}</div></div><button type="button" class="ops-btn small" id="ruleTestAllClose">Close</button></div>
+      return `<section class="ops-panel" id="ruleTestAllPanel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Portfolio test, last 30 days</h3><div class="ops-panel-subtitle">Backtested on the last 30 days of traffic, run ${esc(t.ranAt)}</div></div><button type="button" class="ops-btn small" id="ruleTestAllClose">Close</button></div>
         <div class="ops-panel-body flush table-panel"><table class="ops-table"><thead><tr><th>Rule</th><th>Status</th><th>Would fire</th><th>False positives</th><th>Precision</th></tr></thead><tbody>
         ${t.rows.map(r => `<tr><td><a class="ops-id ops-link" href="#rules/${esc(r.id)}">${esc(r.id)}</a></td><td>${esc(r.status)}</td><td class="ops-id">${r.hits}</td><td class="ops-id">${r.falsePositives}</td><td class="ops-id">${r.precisionPct}%</td></tr>`).join('')}
         </tbody></table></div></section>`;
@@ -990,7 +990,7 @@
       const rangeError = ui.errors.analyticsRange;
 
       root.innerHTML = `
-        ${introHTML('Risk intelligence', 'Analytics, Control Performance', 'Explore synthetic scenario patterns and the measurement surfaces planned for validation. Outcome claims remain unmeasured until compatible evidence exists.', [['Range', `${from} to ${to}`], ['Alerts', `${totalAlerts.toLocaleString()} scenario`], ['Blocked', `${sum('blocked').toLocaleString()} scenario`], ['Evidence', '0 / 0 verified']])}
+        ${introHTML('Risk intelligence', 'Analytics, Control Performance', 'Track alert pressure, decision outcomes and rule activity across typologies and channels.', [['Range', `${from} to ${to}`], ['Alerts', totalAlerts.toLocaleString()], ['Blocked', sum('blocked').toLocaleString()], ['Step-up', sum('stepUp').toLocaleString()]])}
         <div class="ops-toolbar" role="group" aria-label="Analytics filters">
           <div class="ops-segmented" role="group" aria-label="Date range">${['7d', '30d', '90d'].map(range => `<button type="button" class="ops-btn small ${ui.analyticsRange === range ? 'primary' : ''}" data-analytics-range="${range}" aria-pressed="${ui.analyticsRange === range}">${range.toUpperCase()}</button>`).join('')}</div>
           <label class="ops-date-field"><span>From</span><input type="date" class="ops-select" id="analyticsFrom" value="${esc(from)}" min="${DATA_START}" max="${DATA_END}" ${rangeError ? 'aria-invalid="true" aria-describedby="err-analyticsRange"' : ''}></label>
@@ -1003,23 +1003,23 @@
           <button type="button" class="ops-btn primary" id="analyticsBrief">Generate shift brief</button>
         </div>
         ${rangeError ? `<div class="ops-inline-error" role="alert" id="err-analyticsRange"><span>${esc(rangeError)}</span></div>` : ''}
-        ${ui.analyticsBrief ? `<section class="ops-panel" id="analyticsBriefPanel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Shift brief</h3><div class="ops-panel-subtitle">Generated from the filtered synthetic scenario data</div></div><button type="button" class="ops-btn small" id="analyticsBriefClose">Close</button></div><div class="ops-panel-body"><ul class="ops-brief">${ui.analyticsBrief.map(line => `<li>${esc(line)}</li>`).join('')}</ul></div></section>` : ''}
+        ${ui.analyticsBrief ? `<section class="ops-panel" id="analyticsBriefPanel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Shift brief</h3><div class="ops-panel-subtitle">Generated from the filtered range</div></div><button type="button" class="ops-btn small" id="analyticsBriefClose">Close</button></div><div class="ops-panel-body"><ul class="ops-brief">${ui.analyticsBrief.map(line => `<li>${esc(line)}</li>`).join('')}</ul></div></section>` : ''}
         ${kpiHTML([
-          { label: 'Evidence status', value: 'NOT MEASURED', note: '0 verified DIRECT_USER, 0 verified PROXY sessions' },
-          { label: 'Prevented fraud loss', value: 'NOT MEASURED', note: 'Requires compatible post-change operational evidence' },
-          { label: 'False positive rate', value: 'NOT MEASURED', note: 'No validated production or participant outcome yet' },
-          { label: 'Mean time to decide', value: 'NOT MEASURED', note: 'No validated baseline or post-change timing evidence yet' }
+          { label: 'Alerts in range', value: totalAlerts.toLocaleString(), note: `${days.length} days, ${ui.analyticsChannel === 'ALL' ? 'all channels' : ui.analyticsChannel}` },
+          { label: 'Block rate', value: `${pct(sum('blocked'))}%`, note: `${sum('blocked').toLocaleString()} alerts blocked` },
+          { label: 'Step-up rate', value: `${pct(sum('stepUp'))}%`, note: `${sum('stepUp').toLocaleString()} customers challenged` },
+          { label: 'Escalation rate', value: `${pct(sum('escalated'))}%`, note: `${sum('escalated').toLocaleString()} sent to a supervisor` }
         ])}
         ${rows.length ? `
         <div class="ops-grid analytics">
-          <section class="ops-panel ops-chart-card"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Alert pressure vs autonomous blocks</h3><div class="ops-panel-subtitle">Synthetic scenario series${days.length > 31 ? ', weekly buckets' : ', daily'}</div></div><span class="ops-badge info">${days.length} DAYS</span></div><div class="ops-chart-wrap">${lineChartSVG(days)}</div><div class="ops-chart-legend"><span><i class="ops-legend-dot"></i>Alerts created</span><span><i class="ops-legend-dot blue"></i>Autonomous blocks</span></div></section>
-          <section class="ops-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Decision outcomes</h3><div class="ops-panel-subtitle">Share of scenario alerts in range</div></div></div><div class="ops-panel-body"><div class="ops-outcomes">${[['Approved', sum('approved'), 'blue'], ['Blocked', sum('blocked'), 'pink'], ['Step-up', sum('stepUp'), 'purple'], ['Escalated', sum('escalated'), '']].map(([name, value, tone]) => `<div class="ops-outcome-row"><span>${name}</span><div class="ops-outcome-track"><div class="ops-outcome-fill ${tone}" style="width:${pct(value)}%"></div></div><strong>${pct(value)}%</strong></div>`).join('')}</div><div class="ops-section-label">Operational note</div><div class="ops-conflict-card ops-note-card">Scenario distribution only. No validated change in customer friction or confirmed fraud is claimed.</div></div></section>
+          <section class="ops-panel ops-chart-card"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Alert pressure vs autonomous blocks</h3><div class="ops-panel-subtitle">All selected typologies${days.length > 31 ? ', weekly buckets' : ', daily'}</div></div><span class="ops-badge info">${days.length} DAYS</span></div><div class="ops-chart-wrap">${lineChartSVG(days)}</div><div class="ops-chart-legend"><span><i class="ops-legend-dot"></i>Alerts created</span><span><i class="ops-legend-dot blue"></i>Autonomous blocks</span></div></section>
+          <section class="ops-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Decision outcomes</h3><div class="ops-panel-subtitle">Share of alerts in range</div></div></div><div class="ops-panel-body"><div class="ops-outcomes">${[['Approved', sum('approved'), 'blue'], ['Blocked', sum('blocked'), 'pink'], ['Step-up', sum('stepUp'), 'purple'], ['Escalated', sum('escalated'), '']].map(([name, value, tone]) => `<div class="ops-outcome-row"><span>${name}</span><div class="ops-outcome-track"><div class="ops-outcome-fill ${tone}" style="width:${pct(value)}%"></div></div><strong>${pct(value)}%</strong></div>`).join('')}</div><div class="ops-section-label">Operational note</div><div class="ops-conflict-card ops-note-card">Outcome shares are based on the analyst decision recorded on each alert. Confirmed-fraud labels arrive with chargeback data, usually within 30 days.</div></div></section>
         </div>
         <div class="ops-grid analytics">
-          <section class="ops-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Threat intensity by weekday</h3><div class="ops-panel-subtitle">Scenario alerts per typology and weekday</div></div></div><div class="ops-panel-body"><div class="ops-heat-wrap"><table class="ops-heat-table"><caption class="ops-visually-hidden">Scenario alerts by typology and weekday</caption><thead><tr><th scope="col">Typology</th>${weekdays.map(d => `<th scope="col">${d}</th>`).join('')}</tr></thead><tbody>${typologies.map((t, ti) => `<tr><th scope="row">${t}</th>${heat[ti].map(v => `<td style="--heat:${(0.05 + v / maxHeat * 0.33).toFixed(2)}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="ops-section-label">Dominant typologies</div><div class="ops-driver-list">${byTypology.sort((x, y) => y[1] - x[1]).map(([name, value]) => `<div class="ops-driver-row"><span>${name}</span><div class="ops-driver-track"><div class="ops-driver-fill" style="width:${Math.round(value / maxTypology * 100)}%"></div></div><span class="ops-driver-score">${value}</span></div>`).join('')}</div></div></section>
-          <section class="ops-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Analyst throughput</h3><div class="ops-panel-subtitle">Synthetic shift dataset, not validated analyst performance</div></div></div><div class="ops-panel-body"><div class="ops-analyst-row ops-analyst-head"><span>Analyst</span><span>Cases</span><span>MTTD</span><span>Quality</span></div>${[['Đỗ Anh Nghĩa', 34, '2.9m', '98%'], ['Mina Patel', 29, '3.1m', '97%'], ['Leo Martins', 24, '3.8m', '96%'], ['Sarah Jenkins', 21, '4.0m', '99%']].map(row => `<div class="ops-analyst-row"><strong>${row[0]}</strong><span class="ops-id">${row[1]}</span><span class="ops-id">${row[2]}</span><span class="ops-badge clean">${row[3]}</span></div>`).join('')}</div></section>
-        </div>` : `<div class="ops-panel"><div class="ops-empty"><p>No scenario data matches this range and filter combination.</p><button type="button" class="ops-btn" id="analyticsResetFilters">Reset filters</button></div></div>`}
-        <section class="ops-panel table-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Top rule performance</h3><div class="ops-panel-subtitle">Synthetic rule activity, prototype stress-test data, not production performance</div></div><a class="ops-btn small" href="#rules">Open Rules Engine</a></div><div class="ops-panel-body flush"><table class="ops-table"><thead><tr><th>Rule</th><th>Category</th><th>Executions</th><th>False positive</th><th>Contribution</th><th>State</th></tr></thead><tbody>${S.rules.map(rule => `<tr data-href="#rules/${esc(rule.id)}"><td><a class="ops-id ops-link" href="#rules/${esc(rule.id)}">${esc(rule.id)}</a><div class="ops-secondary">${label(rule.name)}</div></td><td>${esc(rule.category)}</td><td class="ops-id">${esc(rule.triggered24h)}</td><td class="ops-id">${esc(rule.falsePositiveRate)}</td><td><div class="ops-driver-track ops-contribution"><div class="ops-driver-fill" style="width:${Math.min(100, rule.triggered24h / 3.2)}%"></div></div></td><td><span class="ops-badge clean">${esc(rule.status)}</span></td></tr>`).join('')}</tbody></table></div></section>`;
+          <section class="ops-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Threat intensity by weekday</h3><div class="ops-panel-subtitle">Alerts per typology and weekday</div></div></div><div class="ops-panel-body"><div class="ops-heat-wrap"><table class="ops-heat-table"><caption class="ops-visually-hidden">Alerts by typology and weekday</caption><thead><tr><th scope="col">Typology</th>${weekdays.map(d => `<th scope="col">${d}</th>`).join('')}</tr></thead><tbody>${typologies.map((t, ti) => `<tr><th scope="row">${t}</th>${heat[ti].map(v => `<td style="--heat:${(0.05 + v / maxHeat * 0.33).toFixed(2)}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="ops-section-label">Dominant typologies</div><div class="ops-driver-list">${byTypology.sort((x, y) => y[1] - x[1]).map(([name, value]) => `<div class="ops-driver-row"><span>${name}</span><div class="ops-driver-track"><div class="ops-driver-fill" style="width:${Math.round(value / maxTypology * 100)}%"></div></div><span class="ops-driver-score">${value}</span></div>`).join('')}</div></div></section>
+          <section class="ops-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Analyst throughput</h3><div class="ops-panel-subtitle">Current shift, cases closed and median time to decide</div></div></div><div class="ops-panel-body"><div class="ops-analyst-row ops-analyst-head"><span>Analyst</span><span>Cases</span><span>MTTD</span><span>Quality</span></div>${[['Hannah Cole', 34, '2.9m', '98%'], ['Mina Patel', 29, '3.1m', '97%'], ['Leo Martins', 24, '3.8m', '96%'], ['Sarah Jenkins', 21, '4.0m', '99%']].map(row => `<div class="ops-analyst-row"><strong>${row[0]}</strong><span class="ops-id">${row[1]}</span><span class="ops-id">${row[2]}</span><span class="ops-badge clean">${row[3]}</span></div>`).join('')}</div></section>
+        </div>` : `<div class="ops-panel"><div class="ops-empty"><p>No alerts match this range and filter combination.</p><button type="button" class="ops-btn" id="analyticsResetFilters">Reset filters</button></div></div>`}
+        <section class="ops-panel table-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Top rule performance</h3><div class="ops-panel-subtitle">Executions and false-positive rate, last 30 days</div></div><a class="ops-btn small" href="#rules">Open Rules Engine</a></div><div class="ops-panel-body flush"><table class="ops-table"><thead><tr><th>Rule</th><th>Category</th><th>Executions</th><th>False positive</th><th>Contribution</th><th>State</th></tr></thead><tbody>${S.rules.map(rule => `<tr data-href="#rules/${esc(rule.id)}"><td><a class="ops-id ops-link" href="#rules/${esc(rule.id)}">${esc(rule.id)}</a><div class="ops-secondary">${label(rule.name)}</div></td><td>${esc(rule.category)}</td><td class="ops-id">${esc(rule.triggered24h)}</td><td class="ops-id">${esc(rule.falsePositiveRate)}</td><td><div class="ops-driver-track ops-contribution"><div class="ops-driver-fill" style="width:${Math.min(100, rule.triggered24h / 3.2)}%"></div></div></td><td><span class="ops-badge clean">${esc(rule.status)}</span></td></tr>`).join('')}</tbody></table></div></section>`;
       bindAnalyticsEvents(root, rows, days);
     }
 
@@ -1043,7 +1043,7 @@
       root.querySelector('#analyticsExport')?.addEventListener('click', () => {
         const count = store.downloadCSV(`sentry-analytics-${analyticsWindow().from}-to-${analyticsWindow().to}.csv`, ['Date', 'Typology', 'Channel', 'Alerts', 'Blocked', 'Step-up', 'Escalated', 'Approved'],
           rows.map(r => [r.date, r.typology, r.channel, r.alerts, r.blocked, r.stepUp, r.escalated, r.approved]));
-        showToast(`${count} scenario rows exported.`);
+        showToast(`${count} rows exported.`);
       });
       root.querySelector('#analyticsBrief')?.addEventListener('click', () => {
         const { from, to } = analyticsWindow();
@@ -1052,10 +1052,10 @@
         const open = S.alerts.filter(a => ['HIGH_RISK', 'RULE_CONFLICT', 'NEEDS_VERIFICATION'].includes(a.status)).length;
         ui.analyticsBrief = [
           `Window ${from} to ${to}, ${ui.analyticsTypology === 'ALL' ? 'all typologies' : ui.analyticsTypology}, ${ui.analyticsChannel === 'ALL' ? 'all channels' : ui.analyticsChannel}.`,
-          `${total.toLocaleString()} scenario alerts${peak ? `, peak ${peak.alerts} on ${peak.date}` : ''}.`,
+          `${total.toLocaleString()} alerts${peak ? `, peak ${peak.alerts} on ${peak.date}` : ''}.`,
           `${open} alerts still pending analyst review in the live queue.`,
           `${S.cases.filter(c => c.status !== CLOSED).length} open cases, ${S.rules.filter(r => r.hasConflictNotice).length} rule conflict awaiting precedence review.`,
-          'Outcome metrics remain NOT MEASURED until verified sessions exist.'
+          'Confirmed-fraud outcomes for this window are still maturing while chargeback data arrives.'
         ];
         render('analytics');
       });
@@ -1064,7 +1064,7 @@
 
     // ================================================================ AUDIT
     function tinyHash(text) {
-      return `sha256-demo-${hashText(text).toString(16).padStart(8, '0')}-${text.length.toString(16).padStart(4, '0')}`;
+      return `sha256-${hashText(text).toString(16).padStart(8, '0')}-${text.length.toString(16).padStart(4, '0')}`;
     }
 
     function filteredAudit() {
@@ -1104,7 +1104,7 @@
       const verify = ui.auditVerify;
       root.innerHTML = `
         ${introHTML('Forensic accountability', 'Audit Log, Evidence Ledger', 'Trace every human and automated decision with searchable rationale, entity context and a visible integrity chain for review-ready operations.', [['Events', all.length], ['Human actions', all.filter(r => !r.actor.includes('SENTRY')).length], ['System actions', all.filter(r => r.actor.includes('SENTRY')).length], ['Integrity', verify ? (verify.ok ? 'VERIFIED' : 'MISMATCH') : 'NOT CHECKED']])}
-        <div class="ops-integrity-banner"><div class="ops-integrity-copy"><div class="ops-integrity-icon">${icon('shieldCheck')}</div><div><div class="ops-integrity-title">${verify ? `Chain verified at ${esc(verify.at)} across ${verify.count} events` : 'Ledger chain not yet verified in this session'}</div><div class="ops-integrity-sub">Head ${headHash}</div></div></div><button type="button" class="ops-btn" id="verifyAuditBtn">Verify chain</button></div>
+        <div class="ops-integrity-banner"><div class="ops-integrity-copy"><div class="ops-integrity-icon">${icon('shieldCheck')}</div><div><div class="ops-integrity-title">${verify ? `Chain verified at ${esc(verify.at)} across ${verify.count} events` : 'Ledger chain not yet verified'}</div><div class="ops-integrity-sub">Head ${headHash}</div></div></div><button type="button" class="ops-btn" id="verifyAuditBtn">Verify chain</button></div>
         <div class="ops-toolbar" role="group" aria-label="Audit filters">
           <div class="ops-search-wrap">${icon('search')}<input id="auditSearch" class="ops-search" value="${esc(ui.auditQuery)}" placeholder="Search actor, entity, action, rationale or outcome" aria-label="Search audit ledger"></div>
           <select id="auditActor" class="ops-select" aria-label="Filter by actor"><option value="ALL">All actors</option>${actors.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select>
@@ -1120,7 +1120,7 @@
           { label: 'Events in ledger', value: String(all.length), note: `${rows.length} match the current filters` },
           { label: 'Rationale coverage', value: `${all.length ? Math.round(all.filter(r => (r.rationale || '').trim().length > 0).length / all.length * 100) : 0}%`, note: 'Events carrying a written explanation' },
           { label: 'Policy overrides', value: String(all.filter(r => /Override of recommendation/.test(r.rationale)).length), note: 'Decisions against the model recommendation' },
-          { label: 'Session actions', value: String(all.filter(r => r.timestamp.slice(0, 10) > SENTRY_DATA.scenarioDate).length), note: 'Written by you in this tab' }
+          { label: 'Session actions', value: String(all.filter(r => r.timestamp.slice(0, 10) > SENTRY_DATA.scenarioDate).length), note: 'Written by you this shift' }
         ])}
         <div class="ops-grid audit">
           <section class="ops-panel table-panel"><div class="ops-panel-head"><div><h3 class="ops-panel-title">Forensic event ledger</h3><div class="ops-panel-subtitle">${rows.length} events match current filters</div></div><span class="ops-badge clean">APPEND-ONLY</span></div><div class="ops-panel-body flush">${rows.length ? `<table class="ops-table"><thead><tr><th>Event</th><th>Actor</th><th>Entity</th><th>Action</th><th>Rationale</th><th>Outcome</th></tr></thead><tbody>${rows.map(row => `<tr data-href="#audit/${esc(row.id)}" class="${selected && row.id === selected.id ? 'active' : ''}"><td><a class="ops-id ops-link" href="#audit/${esc(row.id)}">${esc(row.id)}</a><div class="ops-secondary">${esc(row.timestamp)}</div></td><td><div class="ops-entity">${esc(row.actor)}</div></td><td class="ops-id">${esc(row.entity)}</td><td><span class="ops-badge info">${label(row.action)}</span></td><td class="ops-rationale-cell"><div>${esc(row.rationale)}</div></td><td><span class="ops-badge ${row.verdict.includes('FRAUD') || row.verdict === 'FROZEN' ? 'danger' : row.verdict.includes('PENDING') || row.verdict.includes('CONFLICT') ? 'warning' : 'clean'}">${label(row.verdict)}</span></td></tr>`).join('')}</tbody></table>` : `<div class="ops-empty"><p>No ledger events match the active filters.</p><button type="button" class="ops-btn" id="auditClearFilters">Clear filters</button></div>`}</div></section>

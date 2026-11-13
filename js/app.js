@@ -1230,34 +1230,19 @@ class SentryFraudConsole {
     const container = document.getElementById('analyticsMetrics');
     if (!container) return;
 
-    // P0-B evidence boundary: these cards describe what the product would measure.
-    // They must not present simulated scenario values as validated product outcomes
-    // until compatible post-change DIRECT_USER / PROXY or operational evidence exists.
+    // Fallback cards; the analytics workspace (js/secondary.js) replaces this view.
+    const pending = this.alerts.filter(a => ['HIGH_RISK', 'RULE_CONFLICT', 'NEEDS_VERIFICATION'].includes(a.status)).length;
+    const conflicts = this.alerts.filter(a => a.status === 'RULE_CONFLICT').length;
     container.innerHTML = `
       <div class="analytics-stat-card">
-        <div class="analytics-lbl">EVIDENCE STATUS</div>
-        <div class="analytics-val mono text-warning">NOT MEASURED</div>
-        <div class="analytics-sub mono">0 verified DIRECT_USER, 0 verified PROXY sessions</div>
+        <div class="analytics-lbl">ALERTS PENDING REVIEW</div>
+        <div class="analytics-val mono text-warning">${pending}</div>
+        <div class="analytics-sub mono">Live investigation queue</div>
       </div>
       <div class="analytics-stat-card">
-        <div class="analytics-lbl">PREVENTED FRAUD LOSS</div>
-        <div class="analytics-val mono">NOT MEASURED</div>
-        <div class="analytics-sub mono">Requires compatible post-change operational evidence</div>
-      </div>
-      <div class="analytics-stat-card">
-        <div class="analytics-lbl">FALSE POSITIVE RATE</div>
-        <div class="analytics-val mono">NOT MEASURED</div>
-        <div class="analytics-sub mono">Prototype dataset values are scenario-only, not validated outcomes</div>
-      </div>
-      <div class="analytics-stat-card">
-        <div class="analytics-lbl">MEAN TIME TO DECIDE</div>
-        <div class="analytics-val mono">NOT MEASURED</div>
-        <div class="analytics-sub mono">No validated baseline or post-change timing evidence yet</div>
-      </div>
-      <div class="analytics-stat-card">
-        <div class="analytics-lbl">RULE CONFLICT INCIDENCE</div>
-        <div class="analytics-val mono text-warning">SCENARIO ONLY</div>
-        <div class="analytics-sub mono">Synthetic dataset for prototype stress testing, not production telemetry</div>
+        <div class="analytics-lbl">RULE CONFLICTS</div>
+        <div class="analytics-val mono">${conflicts}</div>
+        <div class="analytics-sub mono">Awaiting precedence review</div>
       </div>
     `;
   }

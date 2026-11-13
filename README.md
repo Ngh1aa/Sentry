@@ -102,16 +102,19 @@ Open `http://localhost:4199` in your browser.
 
 ---
 
-## 06b. Full Prototype Behaviour (no backend)
+## 06b. Product Behaviour (no backend)
 
-Every app page now behaves like the product, with only the backend missing:
+Every app page behaves like the product, with only the backend missing:
 
-- **Data**: `js/data.js` is the single seed. `js/store.js` copies it into `sessionStorage`, so every change survives navigation and reload within the tab. Open **Demo data** in the header to **Reset demo data** or to **Fail the next request** (simulated 503).
+- **Entry URL**: https://sentry-xi-lime.vercel.app/ opens the Alert Queue already signed in as the analyst **Hannah Cole**. **Sign out** (account menu, top right) shows the sign-in screen, which offers **Continue as Hannah Cole** and also accepts `hannah.cole@sentryrisk.app` / `Sentry-2026`.
+- **Data**: `js/data.js` is the single seed. `js/store.js` copies it into `sessionStorage`, so every change survives navigation and reload within the tab.
+- **Demo tools** are hidden from normal visitors. Add `?demo=1` to any app URL (for example `/?demo=1`) to show a small **Demo tools** button in the bottom-right corner with **Reset demo data** and **Simulate a failed request** (503). The flag stays on for the tab; `?demo=0` turns it off.
+- **Documentation and evidence pages** (`design-lens.html`, `recruiter-state-lab.html`, `recovery-scenario.html`, `design-system.html`, `component-states.html`, `state-matrix.html`, `prototype.html`, `sitemap.html`, `user-flow.html`) are still deployed and tested, but are not linked from the product.
 - **Alerts**: assign, create a case, escalate, mark false positive and resolve with a mandatory rationale; bulk select for assign, case, escalate and false positive. A failed audit write keeps the rationale and offers a retry.
 - **Cases** (`#cases/CASE-4401`): create from alerts or manually, notes, evidence file names, status changes, close with a resolution, reopen.
-- **Rules** (`#rules/RULE-402`): create and edit with validation, enable or disable, clone, delete with confirmation, and a simulated test against the last 30 days.
+- **Rules** (`#rules/RULE-402`): create and edit with validation, enable or disable, clone, delete with confirmation, and a backtest against the last 30 days.
 - **Customers** (`#customers/CUST-90412`): freeze or unfreeze with a reason, EDD request, watchlist and watchlist notes, CSV export.
-- **Analytics**: 7D/30D/90D or a custom date range, typology and channel filters, CSV export, shift brief. Outcome metrics stay NOT MEASURED.
+- **Analytics**: 7D/30D/90D or a custom date range, typology and channel filters, CSV export, shift brief. Rates are computed from the alert series in range; no outcome figures are invented.
 - **Audit** (`#audit/AUD-99120`): search, actor, action, outcome and date filters, entry detail with links to the entity, CSV export, chain verification.
 - Each workspace has loading, empty, not-found and recoverable-error states.
 

@@ -1,7 +1,8 @@
-// SENTRY full-prototype end-to-end gate.
-// Covers every workflow against the sessionStorage demo store, the reset
-// control, the failed-request simulation, and two global rules: no console
-// errors and no href="#" on any page.
+// SENTRY end-to-end gate.
+// Covers every workflow against the sessionStorage store, sign-out / sign-in,
+// the hidden demo tools (?demo=1: reset and failed-request simulation), and
+// global rules: no console errors, no href="#" on any page, and no prototype
+// wording on product pages.
 //
 // Run: SENTRY_BASE_URL=http://127.0.0.1:8922 npx playwright test qa/full-prototype.spec.mjs --workers=1
 import { test, expect } from '@playwright/test';
@@ -83,8 +84,8 @@ test('alerts: assign, case from alert, bulk escalate, false positive and resolve
 
   await page.locator('#btnAssignAlert').click();
   await page.waitForSelector('#btnAssignAlert:has-text("Assigned to you")');
-  await expect(page.locator('#evidenceAssignee')).toHaveText('Assignee: Đỗ Anh Nghĩa');
-  await expect(page.locator('.queue-alert-card.active .alert-card-assignee')).toContainText('Đỗ Anh Nghĩa');
+  await expect(page.locator('#evidenceAssignee')).toHaveText('Assignee: Hannah Cole');
+  await expect(page.locator('.queue-alert-card.active .alert-card-assignee')).toContainText('Hannah Cole');
 
   // Bulk: validation first, then escalate two pending alerts.
   await page.locator('#queueSelectToggle').click();
@@ -130,7 +131,7 @@ test('alerts: assign, case from alert, bulk escalate, false positive and resolve
 
 test('alerts: a failed audit write keeps the rationale and retry commits', async ({ page }) => {
   const errors = watchConsole(page);
-  await open(page, 'index.html#queue/ALT-8921');
+  await open(page, 'index.html?demo=1#queue/ALT-8921');
   await armFailure(page);
   await page.locator('#analystNoteInput').fill(RATIONALE);
   await page.locator('#btnActionFreeze').click();
@@ -148,7 +149,7 @@ test('alerts: a failed audit write keeps the rationale and retry commits', async
 
 test('cases: create, view, note, evidence, status, close, reopen and not-found', async ({ page }) => {
   const errors = watchConsole(page);
-  await open(page, 'cases.html');
+  await open(page, 'cases.html?demo=1');
 
   // Empty state from filters.
   await page.locator('#caseSearch').fill('zzz-no-match');
@@ -297,7 +298,7 @@ test('customers: detail, freeze and unfreeze, watchlist note, export', async ({ 
 
 test('analytics: date range, filters, CSV export, load failure and retry', async ({ page }) => {
   const errors = watchConsole(page);
-  await open(page, 'analytics.html');
+  await open(page, 'analytics.html?demo=1');
   const root = page.locator('#opsAnalyticsRoot');
   await expect(root).toContainText('2026-08-18 to 2026-09-16');
   await page.locator('[data-analytics-range="7d"]').click();
@@ -337,7 +338,7 @@ test('analytics: date range, filters, CSV export, load failure and retry', async
   await page.waitForSelector('#opsAnalyticsRoot[data-state="error"]');
   await page.locator('#retry-analytics').click();
   await page.waitForSelector('#opsAnalyticsRoot[data-state="ready"]');
-  await expect(root).toContainText('NOT MEASURED');
+  await expect(root).toContainText('Block rate');
   expect(errors).toEqual([]);
 });
 
@@ -375,7 +376,7 @@ test('audit: filters, entry detail, CSV export, verify chain, not-found', async 
 
 test('queue load failure shows a recoverable error', async ({ page }) => {
   const errors = watchConsole(page);
-  await open(page, 'index.html#queue/ALT-8921');
+  await open(page, 'index.html?demo=1#queue/ALT-8921');
   await armFailure(page);
   await page.locator('#queueRefresh').click();
   await page.waitForSelector('#queueRetry');
@@ -387,11 +388,11 @@ test('queue load failure shows a recoverable error', async ({ page }) => {
 
 test('reset demo data restores the seed', async ({ page }) => {
   const errors = watchConsole(page);
-  await open(page, 'index.html#queue/ALT-8921');
+  await open(page, 'index.html?demo=1#queue/ALT-8921');
   await page.locator('#btnAssignAlert').click();
   await page.waitForSelector('#btnAssignAlert:has-text("Assigned to you")');
   await reloadReady(page);
-  await expect(page.locator('#evidenceAssignee')).toHaveText('Assignee: Đỗ Anh Nghĩa');
+  await expect(page.locator('#evidenceAssignee')).toHaveText('Assignee: Hannah Cole');
 
   await page.locator('#demoMenuButton').click();
   await page.locator('#demoResetButton').click();
@@ -403,5 +404,75 @@ test('reset demo data restores the seed', async ({ page }) => {
   await expect(page.locator('#sentryToast')).toContainText('Demo data reset');
   const stored = await page.evaluate(() => JSON.parse(sessionStorage.getItem('sentry.demo.state.v1')).alerts[0].assignee);
   expect(stored).toBeNull();
+  expect(errors).toEqual([]);
+});
+
+const PRODUCT_PAGES = ['index.html', 'cases.html', 'rules.html', 'customers.html', 'analytics.html', 'audit.html', ...DETAIL_ROUTES];
+const PROTOTYPE_WORDS = /prototype|demo data|sandbox|simulat|fictional|state lab|portfolio review/i;
+const DOC_LINK = /(design-lens|recruiter-state-lab|design-system|component-states|state-matrix|prototype|sitemap|user-flow|recovery-scenario)\.html/;
+
+test('product pages carry no prototype wording and hide demo tools unless ?demo=1', async ({ page }) => {
+  test.setTimeout(240000);
+  const errors = watchConsole(page);
+  for (const route of PRODUCT_PAGES) {
+    await open(page, route);
+    await page.waitForTimeout(200);
+    const text = await page.evaluate(() => document.body.innerText);
+    expect(text.match(PROTOTYPE_WORDS), `${route} shows prototype wording`).toBeNull();
+    await expect(page.locator('#demoMenuButton')).toHaveCount(0);
+    await expect(page.locator('[data-sentry-state-lab-launcher]')).toHaveCount(0);
+    await expect(page.locator('.sentry-footer')).toHaveText('Concept product designed by Đỗ Anh Nghĩa.');
+    const hrefs = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')));
+    expect(hrefs.filter(href => DOC_LINK.test(href)), `${route} links to documentation pages`).toEqual([]);
+  }
+
+  await open(page, 'index.html?demo=1');
+  await expect(page.locator('#demoMenuButton')).toBeVisible();
+  await expect(page.locator('#demoMenuButton')).toHaveText(/Demo tools/);
+  await page.locator('#demoMenuButton').click();
+  await expect(page.locator('#demoFailToggle')).toBeVisible();
+  await expect(page.locator('#demoResetButton')).toBeVisible();
+  // The flag stays on for the tab, and ?demo=0 turns it off.
+  await open(page, 'rules.html');
+  await expect(page.locator('#demoMenuButton')).toBeVisible();
+  await open(page, 'index.html?demo=0');
+  await expect(page.locator('#demoMenuButton')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('opens signed in; sign out shows the sign-in screen; both sign-in paths work', async ({ page }) => {
+  const errors = watchConsole(page);
+  await open(page, '');
+  await expect(page.locator('#view-queue')).toHaveClass(/active/);
+  await expect(page.locator('#accountMenuButton')).toContainText('Hannah Cole');
+  await expect(page.locator('#sentrySignIn')).toHaveCount(0);
+
+  await page.locator('#accountMenuButton').click();
+  await page.locator('#signOutButton').click();
+  const screen = page.locator('#sentrySignIn');
+  await expect(screen).toBeVisible();
+  await expect(screen).toContainText('Continue as Hannah Cole');
+  await expect(screen).toContainText('Concept product designed by Đỗ Anh Nghĩa.');
+  // Console hotkeys stay inert behind the sign-in screen.
+  await page.keyboard.press('b');
+  await expect(page.locator('#decisionConfirmPanel')).toBeHidden();
+
+  // Still signed out after a reload.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(screen).toBeVisible();
+
+  await page.locator('#signInEmail').fill('hannah.cole@sentryrisk.app');
+  await page.locator('#signInPassword').fill('wrong-password');
+  await page.locator('#signInForm button[type="submit"]').click();
+  await expect(page.locator('#signInError')).toContainText('not recognised');
+  await page.locator('#signInPassword').fill('Sentry-2026');
+  await page.locator('#signInForm button[type="submit"]').click();
+  await expect(screen).toHaveCount(0);
+
+  await page.locator('#accountMenuButton').click();
+  await page.locator('#signOutButton').click();
+  await page.locator('#signInContinue').click();
+  await expect(screen).toHaveCount(0);
+  await expect(page.locator('#view-queue')).toHaveClass(/active/);
   expect(errors).toEqual([]);
 });

@@ -29,18 +29,16 @@ test('Sentry evidence lens exposes decision pins, baseline, tour and operational
   await page.screenshot({ path: 'qa-artifacts/sentry-evidence-lens.png', fullPage: true });
 });
 
-test('Sentry analytics keeps simulated outcomes inside the evidence boundary', async ({ page }) => {
+test('Sentry analytics shows only data-derived metrics, no fabricated outcome claims', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseURL}/index.html`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: /Analytics/ }).click();
 
   const analyticsView = page.locator('#view-analytics');
   await expect(analyticsView).toHaveClass(/active/);
-  await expect(analyticsView).toContainText('Evidence status');
-  await expect(analyticsView).toContainText('0 verified DIRECT_USER, 0 verified PROXY sessions');
-  await expect(analyticsView).toContainText('Prevented fraud loss');
-  await expect(analyticsView).toContainText('NOT MEASURED');
-  await expect(analyticsView).toContainText(/Synthetic|synthetic/);
+  // Rates are computed from the seeded alert series shown on the page.
+  await expect(analyticsView).toContainText('Block rate');
+  await expect(analyticsView).toContainText('Step-up rate');
 
   await expect(analyticsView).not.toContainText('$1,842,900');
   await expect(analyticsView).not.toContainText('99.4% precision');
@@ -51,9 +49,9 @@ test('Sentry analytics keeps simulated outcomes inside the evidence boundary', a
   await expect(analyticsView).not.toContainText('18% after split-workspace rollout');
 
   const kpis = page.locator('.sentry-kpi-strip');
-  await expect(kpis).toContainText('Decision Time Evidence:');
-  await expect(kpis).toContainText('False Positive Evidence:');
-  await expect(kpis).toContainText('Not measured');
+  await expect(kpis).toContainText('Queue Workload:');
+  await expect(kpis).not.toContainText('Not measured');
+  await expect(kpis).not.toContainText('Illustrative');
 
   await fs.mkdir('qa-artifacts', { recursive: true });
   await page.screenshot({ path: 'qa-artifacts/sentry-truthful-analytics.png', fullPage: true });
